@@ -1,0 +1,949 @@
+let currentPostId     = null;
+let currentCollection = 'posts'; 
+let isSaving          = false;
+
+const MEDIAHUB_CATS = ['beats', 'movies', 'tvshows'];
+
+// ── Per-category field panel IDs ─────────────────────────────────────────────
+const MEDIAHUB_PANELS = {
+  beats:   'mediahub-beats-fields',
+  movies:  'mediahub-movies-fields',
+  tvshows: 'mediahub-tvshows-fields'
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  injectGalleryTab();  
+  injectGalleryPanel();
+  loadPostsList();
+  bindEditorControls();
+  bindFormatting();
+  bindImageUpload();
+  bindSidebarTabs();
+  bindCategoryChange();
+
+  // Load item from URL params
+  const params   = new URLSearchParams(window.location.search);
+  const urlId    = params.get('id');
+  const urlColl  = params.get('collection') || 'posts';
+  if (urlId) {
+    currentCollection = urlColl;
+    setActiveTab(urlColl === 'mediahub' ? 'mediahub' : 'posts');
+    loadPostIntoEditor(urlId);
+  }
+
+  setInterval(autoSave, 5000);
+});
+
+// ── Sidebar Tabs ──────────────────────────────────────────────────────────────
+
+function bindSidebarTabs() {
+  document.querySelectorAll('.sidebar-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const which = tab.dataset.tab;
+
+      if (which === 'gallery') {
+        setActiveTab('gallery');
+        showGalleryPanel(true);
+        return;
+      }
+
+      showGalleryPanel(false);
+      setActiveTab(which);
+      currentCollection = which === 'mediahub' ? 'mediahub' : 'posts';
+      loadPostsList();
+    });
+  });
+}
+
+function setActiveTab(which) {
+  document.querySelectorAll('.sidebar-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === which);
+  });
+}
+
+// ── Posts List ────────────────────────────────────────────────────────────────
+
+async function loadPostsList() {
+  const list = document.getElementById('posts-list');
+  if (!list) return;
+  list.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+
+  try {
+    const items = currentCollection === 'mediahub'
+      ? await getAllMediaHub()
+      : await getAllPosts();
+
+    const searchInput = document.getElementById('sidebar-search');
+
+    function render(all) {
+      if (all.length === 0) {
+        list.innerHTML = '<p class="empty-posts">No items yet. Create one!</p>';
+        return;
+      }
+      list.innerHTML = '';
+      all.forEach(item => {
+        const el  = document.createElement('div');
+        el.className = 'post-list-item' + (item.id === currentPostId ? ' active' : '');
+        el.dataset.id = item.id;
+        const date = item.date
+          ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '';
+        el.innerHTML = `
+          <div class="post-list-title">${item.title}</div>
+          <div class="post-list-meta">
+            <span class="post-list-category">${item.category || currentCollection}</span>
+            <span>${date}</span>
+          </div>
+        `;
+        el.addEventListener('click', () => loadPostIntoEditor(item.id));
+        list.appendChild(el);
+      });
+    }
+
+    render(items);
+
+    if (searchInput) {
+      // Clone to remove stale listeners from prior renders
+      const fresh = searchInput.cloneNode(true);
+      searchInput.parentNode.replaceChild(fresh, searchInput);
+      fresh.addEventListener('input', () => {
+        const q = fresh.value.toLowerCase();
+        render(items.filter(i =>
+          i.title.toLowerCase().includes(q) ||
+          (i.creator || '').toLowerCase().includes(q) ||
+          (i.genre   || '').toLowerCase().includes(q)
+        ));
+      });
+    }
+  } catch (err) {
+    console.error('loadPostsList error:', err);
+    list.innerHTML = '<p class="empty-posts" style="color:var(--alert-red);">Error loading items.</p>';
+  }
+}
+
+// ── Load Item into Editor ─────────────────────────────────────────────────────
+
+async function loadPostIntoEditor(id) {
+  try {
+    const item = currentCollection === 'mediahub'
+      ? await getMediaHubById(id)
+      : await getPostById(id);
+
+    if (!item) { showToast('Item not found.', 'error'); return; }
+
+    currentPostId = id;
+
+    // Common fields
+    safeSet('post-title-input', item.title);
+    safeSet('post-date', item.date ? item.date.slice(0, 10) : '');
+
+    const category = item.category || (currentCollection === 'mediahub' ? 'beats' : 'blog');
+    const sel = document.getElementById('post-category');
+    if (sel) sel.value = category;
+
+    // Show/hide the right mediahub panel
+    if (currentCollection === 'mediahub') {
+      showMediaHubFields(category);
+      fillMediaHubFields(category, item);
+    } else {
+      showMediaHubFields(null);
+    }
+
+    // Show canvas
+    document.getElementById('no-post-msg').style.display         = 'none';
+    document.getElementById('editor-canvas-inner').style.display = 'block';
+
+    // Rebuild sections
+    const container = document.getElementById('editor-sections');
+    container.innerHTML = '';
+    if (item.sections && item.sections.length > 0) {
+      item.sections.forEach(sec => addSection(sec));
+    } else if (currentCollection !== 'mediahub') {
+      addSection({ type: 'text', content: item.content || '' });
+    }
+
+    setSaveStatus('saved');
+    highlightActivePost(id);
+
+    const url = new URL(window.location);
+    url.searchParams.set('id', id);
+    url.searchParams.set('collection', currentCollection);
+    window.history.replaceState({}, '', url);
+  } catch (err) {
+    console.error('loadPostIntoEditor error:', err);
+    showToast('Failed to load item.', 'error');
+  }
+}
+
+function highlightActivePost(id) {
+  document.querySelectorAll('.post-list-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+}
+
+// ── MediaHub field show/hide and fill ─────────────────────────────────────────
+
+function showMediaHubFields(category) {
+  // Hide all panels first
+  Object.values(MEDIAHUB_PANELS).forEach(panelId => {
+    const el = document.getElementById(panelId);
+    if (el) el.style.display = 'none';
+  });
+  if (!category) return;
+  const panelId = MEDIAHUB_PANELS[category];
+  if (panelId) {
+    const el = document.getElementById(panelId);
+    if (el) el.style.display = 'block';
+  }
+}
+
+function fillMediaHubFields(category, item) {
+  if (category === 'beats') {
+    safeSet('beats-creator',     item.creator     || item.artistName || '');
+    safeSet('beats-genre',       item.genre       || '');
+    safeSet('beats-image-url',   item.imageURL    || '');
+    safeSet('beats-description', item.description || '');
+    safeSet('beats-song-link',   item.songLink    || '');
+    safeSet('beats-artist-link', item.artistLink  || '');
+    setAudioURL(item.audioURL || '');
+  } else if (category === 'movies') {
+    safeSet('movies-genre',       item.genre       || '');
+    safeSet('movies-image-url',   item.imageURL    || '');
+    safeSet('movies-description', item.description || '');
+    safeSet('movies-creator',     item.creator     || '');
+    safeSet('movies-stars',       item.stars       || '');
+    safeSet('movies-info-link',   item.infoLink    || '');
+    safeSet('movies-video-url',   item.videoURL    || '');
+  } else if (category === 'tvshows') {
+    safeSet('tvshows-genre',       item.genre       || '');
+    safeSet('tvshows-image-url',   item.imageURL    || '');
+    safeSet('tvshows-description', item.description || '');
+    safeSet('tvshows-creator',     item.creator     || '');
+    safeSet('tvshows-stars',       item.stars       || '');
+    safeSet('tvshows-info-link',   item.infoLink    || '');
+    safeSet('tvshows-video-url',   item.videoURL    || '');
+  }
+}
+
+function safeSet(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || '';
+}
+
+// ── Category selector change ──────────────────────────────────────────────────
+
+function bindCategoryChange() {
+  const sel = document.getElementById('post-category');
+  if (!sel) return;
+  sel.addEventListener('change', () => {
+    const cat     = sel.value;
+    const isMedia = MEDIAHUB_CATS.includes(cat);
+    if (isMedia) {
+      showMediaHubFields(cat);
+      if (currentPostId) {
+        currentCollection = 'mediahub';
+        setActiveTab('mediahub');
+      }
+    } else {
+      showMediaHubFields(null);
+    }
+  });
+}
+
+// ── Create / Delete ───────────────────────────────────────────────────────────
+
+async function createNewPost() {
+  try {
+    const isMedia = currentCollection === 'mediahub';
+    let id;
+    if (isMedia) {
+      id = await createMediaHub({
+        title:    'Untitled Media',
+        category: 'beats',
+        date:     new Date().toISOString()
+      });
+    } else {
+      id = await createPost({
+        title:    'Untitled Post',
+        content:  '',
+        category: 'blog',
+        date:     new Date().toISOString(),
+        sections: [{ type: 'text', content: '' }]
+      });
+    }
+    await loadPostsList();
+    await loadPostIntoEditor(id);
+    showToast('New item created!', 'success');
+  } catch (err) {
+    console.error('createNewPost error:', err);
+    showToast('Failed to create item.', 'error');
+  }
+}
+
+async function deleteCurrentPost() {
+  if (!currentPostId) { showToast('No item selected.', 'warn'); return; }
+  if (!confirm('Delete this item? This cannot be undone.')) return;
+
+  try {
+    if (currentCollection === 'mediahub') {
+      await deleteMediaHub(currentPostId);
+    } else {
+      await deletePost(currentPostId);
+    }
+
+    currentPostId = null;
+
+    document.getElementById('editor-sections').innerHTML          = '';
+    document.getElementById('no-post-msg').style.display          = 'flex';
+    document.getElementById('editor-canvas-inner').style.display  = 'none';
+    document.getElementById('post-title-input').value             = '';
+    showMediaHubFields(null);
+    setSaveStatus('idle');
+
+    const url = new URL(window.location);
+    url.searchParams.delete('id');
+    url.searchParams.delete('collection');
+    window.history.replaceState({}, '', url);
+
+    showToast('Deleted successfully.', 'success');
+    await loadPostsList();
+  } catch (err) {
+    console.error('deleteCurrentPost error:', err);
+    showToast('Delete failed.', 'error');
+  }
+}
+
+// ── Gather post data for save ─────────────────────────────────────────────────
+
+function gatherPostData() {
+  const title    = document.getElementById('post-title-input').value.trim();
+  const category = document.getElementById('post-category').value;
+  const date     = document.getElementById('post-date').value || new Date().toISOString();
+
+  if (category === 'beats') {
+    return {
+      title, category, date,
+      creator:     document.getElementById('beats-creator').value.trim(),
+      genre:       document.getElementById('beats-genre').value.trim(),
+      imageURL:    document.getElementById('beats-image-url').value.trim(),
+      description: document.getElementById('beats-description').value.trim(),
+      songLink:    document.getElementById('beats-song-link').value.trim(),
+      artistLink:  document.getElementById('beats-artist-link').value.trim(),
+      audioURL:    document.getElementById('beats-audio-url').value.trim(),
+      // Clear unused fields
+      stars: '', videoURL: '', infoLink: ''
+    };
+  }
+
+  if (category === 'movies') {
+    return {
+      title, category, date,
+      genre:       document.getElementById('movies-genre').value.trim(),
+      imageURL:    document.getElementById('movies-image-url').value.trim(),
+      description: document.getElementById('movies-description').value.trim(),
+      creator:     document.getElementById('movies-creator').value.trim(),
+      stars:       document.getElementById('movies-stars').value.trim(),
+      infoLink:    document.getElementById('movies-info-link').value.trim(),
+      videoURL:    document.getElementById('movies-video-url').value.trim(),
+      // Clear unused fields
+      songLink: '', artistLink: ''
+    };
+  }
+
+  if (category === 'tvshows') {
+    return {
+      title, category, date,
+      genre:       document.getElementById('tvshows-genre').value.trim(),
+      imageURL:    document.getElementById('tvshows-image-url').value.trim(),
+      description: document.getElementById('tvshows-description').value.trim(),
+      creator:     document.getElementById('tvshows-creator').value.trim(),
+      stars:       document.getElementById('tvshows-stars').value.trim(),
+      infoLink:    document.getElementById('tvshows-info-link').value.trim(),
+      videoURL:    document.getElementById('tvshows-video-url').value.trim(),
+      // Clear unused fields
+      songLink: '', artistLink: ''
+    };
+  }
+
+  // (blog/poem/story)
+  const sections = gatherSections();
+  const content  = sections.map(s => {
+    const d = document.createElement('div');
+    d.innerHTML = s.content;
+    return d.textContent;
+  }).join('\n\n');
+  return { title, category, date, sections, content };
+}
+
+// ── Validation ────────────────────────────────────────────────────────────────
+
+function validateBeforeSave() {
+  const title = document.getElementById('post-title-input').value.trim();
+  if (!title) {
+    showToast('Title is required before saving.', 'warn');
+    document.getElementById('post-title-input').focus();
+    return false;
+  }
+  const cat = document.getElementById('post-category').value;
+  if (cat === 'beats') {
+    const creator = document.getElementById('beats-creator').value.trim();
+    if (!creator) {
+      showToast('Artist name is required.', 'warn');
+      document.getElementById('beats-creator').focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+
+async function saveCurrentPost() {
+  if (!currentPostId) { showToast('Select or create an item first.', 'warn'); return; }
+  if (isSaving) return;
+  if (!validateBeforeSave()) return;
+
+  isSaving = true;
+  setSaveStatus('saving');
+  try {
+    const data = gatherPostData();
+    if (currentCollection === 'mediahub') {
+      await updateMediaHub(currentPostId, data);
+    } else {
+      await updatePost(currentPostId, data);
+    }
+    setSaveStatus('saved');
+    showToast('Saved successfully.', 'success');
+    await loadPostsList();
+  } catch (err) {
+    console.error('saveCurrentPost error:', err);
+    setSaveStatus('unsaved');
+    showToast('Save failed. Check console.', 'error');
+  } finally {
+    isSaving = false;
+  }
+}
+
+async function autoSave() {
+  if (!currentPostId || isSaving) return;
+  isSaving = true;
+  setSaveStatus('saving');
+  try {
+    const data = gatherPostData();
+    if (currentCollection === 'mediahub') {
+      await updateMediaHub(currentPostId, data);
+    } else {
+      await updatePost(currentPostId, data);
+    }
+    setSaveStatus('saved');
+  } catch (err) {
+    setSaveStatus('unsaved');
+  } finally {
+    isSaving = false;
+  }
+}
+
+// ── Save Status ───────────────────────────────────────────────────────────────
+
+function setSaveStatus(status) {
+  const labels = { saving: 'Saving...', saved: 'Saved', unsaved: 'Unsaved', idle: '' };
+  const label  = labels[status] || '';
+
+  ['status-dot', 'status-dot2'].forEach(id => {
+    const dot = document.getElementById(id);
+    if (dot) dot.className = 'status-indicator ' + status;
+  });
+  ['save-status-text', 'save-status-text2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
+}
+
+// ── Controls Binding ──────────────────────────────────────────────────────────
+
+function bindEditorControls() {
+  document.getElementById('btn-new-post')?.addEventListener('click', createNewPost);
+  document.getElementById('btn-delete-post')?.addEventListener('click', deleteCurrentPost);
+  document.getElementById('btn-save-post')?.addEventListener('click', saveCurrentPost);
+}
+
+// ── Formatting Toolbar ────────────────────────────────────────────────────────
+
+function bindFormatting() {
+  document.querySelectorAll('.format-btn[data-cmd]').forEach(btn => {
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const cmd = btn.dataset.cmd;
+      const val = btn.dataset.val || null;
+      document.execCommand(cmd, false, val);
+    });
+  });
+}
+
+// ── Image Upload ──────────────────────────────────────────────────────────────
+
+function bindImageUpload() {
+  const area  = document.getElementById('btn-upload-image');
+  const input = document.getElementById('image-upload-input');
+  if (!area || !input) return;
+
+  area.addEventListener('click', () => input.click());
+
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    showToast('Uploading image...', 'info');
+    setSaveStatus('saving');
+    try {
+      const url = await uploadImage(file, () => {});
+
+      if (currentCollection === 'mediahub') {
+        const cat = document.getElementById('post-category').value;
+        const fieldMap = {
+          beats:   'beats-image-url',
+          movies:  'movies-image-url',
+          tvshows: 'tvshows-image-url'
+        };
+        const fieldId = fieldMap[cat];
+        if (fieldId) safeSet(fieldId, url);
+      } else {
+        addSection({ type: 'image', content: url });
+      }
+
+      setSaveStatus('unsaved');
+      showToast('Image uploaded successfully.', 'success');
+    } catch (err) {
+      console.error('uploadImage error:', err);
+      setSaveStatus('unsaved');
+      showToast('Upload failed. Check console.', 'error');
+    }
+    input.value = '';
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 2800);
+}
+
+
+const AUDIO_EXTENSIONS = /\.(mp3|wav|ogg|flac|m4a|aac|opus)(\?.*)?$/i;
+
+function isAudioURL(url) {
+  try {
+    const u = new URL(url.trim());
+    if (u.hostname === 'cdn.discordapp.com') return true;
+    if (AUDIO_EXTENSIONS.test(u.pathname)) return true;
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function setAudioURL(url) {
+  const hiddenInput = document.getElementById('beats-audio-url');
+  const dropZone    = document.getElementById('beats-audio-drop');
+  const label       = document.getElementById('beats-audio-drop-label');
+  const preview     = document.getElementById('beats-audio-preview');
+  const player      = document.getElementById('beats-audio-player');
+  if (!hiddenInput) return;
+
+  if (url) {
+    hiddenInput.value  = url;
+    player.src         = url;
+    preview.style.display = 'block';
+    dropZone.classList.add('has-audio');
+    // Show just the filename from the URL for readability
+    try {
+      const parts = new URL(url).pathname.split('/');
+      label.textContent = decodeURIComponent(parts[parts.length - 1]) || 'Audio loaded';
+    } catch (e) {
+      label.textContent = 'Audio loaded';
+    }
+  } else {
+    hiddenInput.value     = '';
+    player.src            = '';
+    player.load();
+    preview.style.display = 'none';
+    dropZone.classList.remove('has-audio');
+    label.textContent = 'Drag a Discord audio link here';
+  }
+}
+
+function bindAudioDropZone() {
+  const dropZone = document.getElementById('beats-audio-drop');
+  if (!dropZone) return;
+
+  // Drag over — highlight
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+  });
+
+  // Drop — extract URL
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+
+    // Try to get URL from drop data
+    const url = (
+      e.dataTransfer.getData('text/uri-list') ||
+      e.dataTransfer.getData('text/plain') ||
+      ''
+    ).trim();
+
+    if (!url) {
+      showToast('No URL detected in drop.', 'warn');
+      return;
+    }
+
+    if (!isAudioURL(url)) {
+      showToast('Link does not appear to be an audio file.', 'warn');
+      return;
+    }
+
+    setAudioURL(url);
+    setSaveStatus('unsaved');
+    showToast('Audio link added.', 'success');
+  });
+
+  // Clear button
+  document.getElementById('beats-audio-clear')?.addEventListener('click', () => {
+    setAudioURL('');
+    setSaveStatus('unsaved');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', bindAudioDropZone);
+
+// ── Gallery Tab & Panel ───────────────────────────────────────────────────────
+
+function injectGalleryTab() {
+  const tabsEl = document.querySelector('.sidebar-tabs');
+  if (!tabsEl) return;
+  const btn = document.createElement('button');
+  btn.className     = 'sidebar-tab';
+  btn.dataset.tab   = 'gallery';
+  btn.textContent   = 'Gallery';
+  btn.style.cssText = 'font-size:var(--text-sm);';
+  tabsEl.appendChild(btn);
+}
+
+function injectGalleryPanel() {
+  const editorControls = document.querySelector('.editor-controls');
+  if (!editorControls) return;
+
+  const panel = document.createElement('div');
+  panel.id            = 'gallery-manager-panel';
+  panel.style.cssText = 'display:none;width:100%;overflow-y:auto;padding:var(--space-sm);box-sizing:border-box;';
+  panel.innerHTML = `
+    <div class="control-section">
+      <p class="control-section-title">New Collection</p>
+      <label class="field-label" for="gallery-new-key">Collection Key</label>
+      <input class="field-input" id="gallery-new-key" type="text" placeholder="e.g. nature, travel, people">
+      <p style="font-size:10px;color:var(--text-secondary);margin:4px 0 var(--space-xs);">
+        Lowercase letters only, no spaces. Used as the unique ID.
+      </p>
+      <label class="field-label" for="gallery-new-title">Display Title</label>
+      <input class="field-input" id="gallery-new-title" type="text" placeholder="e.g. Nature & Landscapes">
+      <label class="field-label" for="gallery-new-desc">Description</label>
+      <input class="field-input" id="gallery-new-desc" type="text" placeholder="Short description">
+      <button class="btn btn-primary" id="gallery-create-collection"
+        style="margin-top:var(--space-xs);width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <img src="assets/icons/add.svg" style="width:14px;height:14px;filter:brightness(0) invert(1);"> Create Collection
+      </button>
+    </div>
+
+    <div class="control-section">
+      <p class="control-section-title">Manage Collection</p>
+      <label class="field-label" for="gallery-col-select">Choose Collection</label>
+      <select class="field-select" id="gallery-col-select">
+        <option value="">-- select a collection --</option>
+      </select>
+    </div>
+
+    <div class="control-section" id="gallery-meta-section" style="display:none;">
+      <p class="control-section-title">Collection Info</p>
+      <label class="field-label" for="gallery-col-title">Display Title</label>
+      <input class="field-input" id="gallery-col-title" type="text" placeholder="e.g. Nature & Landscapes">
+      <label class="field-label" for="gallery-col-desc-edit">Description</label>
+      <input class="field-input" id="gallery-col-desc-edit" type="text" placeholder="Short description">
+      <label class="field-label" for="gallery-col-cover">Cover Image URL</label>
+      <input class="field-input" id="gallery-col-cover" type="text" placeholder="https://...">
+      <div style="display:flex;gap:var(--space-xs);margin-top:var(--space-xs);">
+        <button class="btn btn-secondary" id="gallery-save-meta"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <img src="assets/icons/save.svg" style="width:14px;height:14px;"> Save Info
+        </button>
+        <button class="btn btn-secondary" id="gallery-delete-collection"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                 background:var(--alert-red);color:var(--cream);border-color:var(--alert-red);">
+          <img src="assets/icons/delete.svg" style="width:14px;height:14px;filter:brightness(0) invert(1);"> Delete
+        </button>
+      </div>
+    </div>
+
+    <div class="control-section" id="gallery-add-section" style="display:none;">
+      <p class="control-section-title">Add Photo</p>
+      <label class="field-label" for="gallery-photo-title">Photo Title</label>
+      <input class="field-input" id="gallery-photo-title" type="text" placeholder="Mountain Vista">
+      <label class="field-label" for="gallery-photo-caption">Caption</label>
+      <input class="field-input" id="gallery-photo-caption" type="text" placeholder="Describe the shot">
+      <label class="field-label" for="gallery-photo-src">Image URL</label>
+      <input class="field-input" id="gallery-photo-src" type="text" placeholder="https://... or assets/photo.jpg">
+      <div class="image-upload-area" id="gallery-upload-area" style="margin-top:var(--space-xs);">
+        <div class="upload-icon"><img src="assets/icons/add.svg" style="width:28px;height:28px;"></div>
+        <p class="upload-text">Or click to upload a file</p>
+        <input type="file" id="gallery-upload-input" accept="image/*" style="display:none;">
+      </div>
+      <button class="btn btn-primary" id="gallery-add-photo"
+        style="margin-top:var(--space-xs);width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <img src="assets/icons/add.svg" style="width:14px;height:14px;filter:brightness(0) invert(1);"> Add to Collection
+      </button>
+    </div>
+
+    <div class="control-section" id="gallery-list-section" style="display:none;">
+      <p class="control-section-title">Photos in Collection
+        <span id="gallery-photo-count" style="color:var(--text-secondary);font-weight:normal;">(0)</span>
+      </p>
+      <div id="gallery-photos-list" style="display:flex;flex-direction:column;gap:var(--space-xs);"></div>
+    </div>
+  `;
+
+  editorControls.appendChild(panel);
+
+  document.getElementById('gallery-col-select')?.addEventListener('change', () => {
+    const key = document.getElementById('gallery-col-select').value;
+    toggleCollectionSections(!!key);
+    if (key) loadGalleryForKey(key);
+  });
+
+  document.getElementById('gallery-create-collection')?.addEventListener('click', createGalleryCollection);
+  document.getElementById('gallery-save-meta')?.addEventListener('click',         saveGalleryMeta);
+  document.getElementById('gallery-delete-collection')?.addEventListener('click', deleteGalleryCollection);
+  document.getElementById('gallery-add-photo')?.addEventListener('click',         addGalleryPhoto);
+
+  const uploadArea  = document.getElementById('gallery-upload-area');
+  const uploadInput = document.getElementById('gallery-upload-input');
+  uploadArea?.addEventListener('click', () => uploadInput?.click());
+  uploadInput?.addEventListener('change', async () => {
+    const file = uploadInput.files[0];
+    if (!file) return;
+    showToast('Uploading photo...', 'info');
+    try {
+      const url = await uploadImage(file, () => {});
+      document.getElementById('gallery-photo-src').value = url;
+      showToast('Photo uploaded!', 'success');
+    } catch (err) {
+      showToast('Upload failed.', 'error');
+    }
+    uploadInput.value = '';
+  });
+
+  loadGalleryCollectionList();
+}
+
+function showGalleryPanel(visible) {
+  const controlsContent = document.querySelector('.controls-content');
+  const galleryPanel    = document.getElementById('gallery-manager-panel');
+
+  if (visible) {
+    showMediaHubFields(null);
+    if (controlsContent) controlsContent.style.display = 'none';
+    if (galleryPanel)    galleryPanel.style.display    = 'block';
+  } else {
+    if (controlsContent) controlsContent.style.display = '';
+    if (galleryPanel)    galleryPanel.style.display    = 'none';
+    const sel = document.getElementById('post-category');
+    if (sel) sel.dispatchEvent(new Event('change'));
+  }
+}
+
+function toggleCollectionSections(visible) {
+  ['gallery-meta-section', 'gallery-add-section', 'gallery-list-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = visible ? 'block' : 'none';
+  });
+}
+
+async function loadGalleryCollectionList() {
+  const sel = document.getElementById('gallery-col-select');
+  if (!sel) return;
+  try {
+    const all = await getAllGalleryCollections();
+    sel.innerHTML = '<option value="">-- select a collection --</option>';
+    Object.entries(all).forEach(([key, data]) => {
+      const opt = document.createElement('option');
+      opt.value       = key;
+      opt.textContent = data.title || key;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('loadGalleryCollectionList error:', err);
+  }
+}
+
+async function createGalleryCollection() {
+  const keyInput   = document.getElementById('gallery-new-key');
+  const titleInput = document.getElementById('gallery-new-title');
+  const descInput  = document.getElementById('gallery-new-desc');
+
+  const key   = keyInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const title = titleInput.value.trim();
+  const desc  = descInput.value.trim();
+
+  if (!key)   { showToast('Collection key is required.', 'warn');   keyInput.focus();   return; }
+  if (!title) { showToast('Display title is required.', 'warn');    titleInput.focus(); return; }
+
+  try {
+    await setGalleryCollection(key, { title, description: desc, photos: [] });
+    showToast(`Collection "${title}" created!`, 'success');
+    keyInput.value = ''; titleInput.value = ''; descInput.value = '';
+    await loadGalleryCollectionList();
+    const sel = document.getElementById('gallery-col-select');
+    if (sel) { sel.value = key; sel.dispatchEvent(new Event('change')); }
+  } catch (err) {
+    console.error('createGalleryCollection error:', err);
+    showToast('Failed to create collection.', 'error');
+  }
+}
+
+async function deleteGalleryCollection() {
+  const key = document.getElementById('gallery-col-select').value;
+  if (!key) return;
+  if (!confirm(`Delete the entire "${key}" collection? This cannot be undone.`)) return;
+  try {
+    await galleryDB.collection('gallery').doc(key).delete();
+    showToast('Collection deleted.', 'success');
+    toggleCollectionSections(false);
+    await loadGalleryCollectionList();
+  } catch (err) {
+    console.error('deleteGalleryCollection error:', err);
+    showToast('Failed to delete collection.', 'error');
+  }
+}
+
+async function loadGalleryForKey(key) {
+  const listEl  = document.getElementById('gallery-photos-list');
+  const countEl = document.getElementById('gallery-photo-count');
+  if (!listEl) return;
+
+  listEl.innerHTML = '<p style="font-size:var(--text-xs);color:var(--text-secondary);">Loading...</p>';
+
+  try {
+    const data = await getGalleryCollection(key);
+    document.getElementById('gallery-col-title').value      = data?.title       || '';
+    document.getElementById('gallery-col-desc-edit').value  = data?.description || '';
+    document.getElementById('gallery-col-cover').value      = data?.coverSrc    || '';
+
+    const photos = data?.photos || [];
+    countEl.textContent = `(${photos.length})`;
+    listEl.innerHTML    = '';
+
+    if (photos.length === 0) {
+      listEl.innerHTML = '<p style="font-size:var(--text-xs);color:var(--text-secondary);font-style:italic;">No photos yet.</p>';
+      return;
+    }
+
+    photos.forEach((photo, idx) => {
+      const item = document.createElement('div');
+      item.style.cssText = `
+        display:flex;align-items:center;gap:8px;
+        background:var(--bg-primary);border:1px solid var(--warm-beige);
+        border-radius:var(--radius-md);padding:8px;font-size:var(--text-xs);
+      `;
+      item.innerHTML = `
+        <img src="${photo.src}" alt="${photo.title}"
+          style="width:44px;height:44px;object-fit:cover;border-radius:6px;
+                 border:1px solid var(--warm-beige);flex-shrink:0;"
+          onerror="this.style.background='var(--warm-beige)';this.src='';">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            ${photo.title || '(no title)'}
+          </div>
+          <div style="color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            ${photo.caption || ''}
+          </div>
+        </div>
+        <button data-idx="${idx}" class="gallery-del-btn"
+          style="width:24px;height:24px;border-radius:4px;border:none;
+                 background:var(--alert-red);cursor:pointer;flex-shrink:0;
+                 display:flex;align-items:center;justify-content:center;">
+          <img src="assets/icons/delete.svg" style="width:13px;height:13px;filter:brightness(0) invert(1);">
+        </button>
+      `;
+      item.querySelector('.gallery-del-btn').addEventListener('click', async () => {
+        if (!confirm(`Delete "${photo.title || 'this photo'}"?`)) return;
+        await removePhotoFromCollection(key, idx);
+        showToast('Photo removed.', 'success');
+        loadGalleryForKey(key);
+      });
+      listEl.appendChild(item);
+    });
+  } catch (err) {
+    console.error('loadGalleryForKey error:', err);
+    listEl.innerHTML = '<p style="color:var(--alert-red);font-size:var(--text-xs);">Error loading photos.</p>';
+  }
+}
+
+async function addGalleryPhoto() {
+  const key     = document.getElementById('gallery-col-select').value;
+  const src     = document.getElementById('gallery-photo-src').value.trim();
+  const title   = document.getElementById('gallery-photo-title').value.trim();
+  const caption = document.getElementById('gallery-photo-caption').value.trim();
+
+  if (!key) { showToast('Select a collection first.', 'warn'); return; }
+  if (!src) { showToast('Image URL is required.', 'warn');     return; }
+
+  try {
+    await addPhotoToCollection(key, { src, title, caption });
+    showToast('Photo added!', 'success');
+    document.getElementById('gallery-photo-src').value     = '';
+    document.getElementById('gallery-photo-title').value   = '';
+    document.getElementById('gallery-photo-caption').value = '';
+    loadGalleryForKey(key);
+  } catch (err) {
+    console.error('addGalleryPhoto error:', err);
+    showToast('Failed to add photo.', 'error');
+  }
+}
+
+async function saveGalleryMeta() {
+  const key   = document.getElementById('gallery-col-select').value;
+  const title = document.getElementById('gallery-col-title').value.trim();
+  const desc  = document.getElementById('gallery-col-desc-edit').value.trim();
+  const cover = document.getElementById('gallery-col-cover').value.trim();
+  if (!key) return;
+  try {
+    await updateCollectionMeta(key, {
+      title:       title || undefined,
+      description: desc  || undefined,
+      coverSrc:    cover || undefined
+    });
+    showToast('Collection info saved!', 'success');
+    await loadGalleryCollectionList();
+    document.getElementById('gallery-col-select').value = key;
+    loadGalleryForKey(key);
+  } catch (err) {
+    console.error('saveGalleryMeta error:', err);
+    showToast('Failed to save info.', 'error');
+  }
+}

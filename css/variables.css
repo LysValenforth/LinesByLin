@@ -1,0 +1,59 @@
+:root {
+  /* ── Brand Colors ── */
+  --forest-green:  #2F5D50;
+  --cream:         #F6F1E7;
+  --warm-beige:    #E8DCC8;
+  --soft-blue:     #A7C4BC;
+  --dark-moss:     #1E3D36;
+  --alert-red:     #D66B6B;
+
+  /* ── Semantic ── */
+  --bg-primary:    #F6F1E7;
+  --bg-surface:    #FDFAF4;
+  --text-primary:  #1E3D36;
+  --text-secondary:#6b7a6e;
+
+  /* ── Typography ── */
+  --font-heading:  'Patrick Hand', cursive;
+  --font-body:     'Nunito', sans-serif;
+  --font-semibold: 600;
+  --font-bold:     700;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+
+  /* ── Spacing ── */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 3rem;
+  --space-xl: 5rem;
+
+  /* ── Layout ── */
+  --nav-height:       64px;
+  --container-width:  1200px;
+
+  /* ── Borders & Radius ── */
+  --border-width: 2px;
+  --radius-sm:    6px;
+  --radius-md:    12px;
+  --radius-lg:    18px;
+  --radius-full:  9999px;
+
+  /* ── Shadows ── */
+  --shadow-soft:     2px 2px 0px var(--warm-beige);
+  --shadow-medium:   3px 3px 0px rgba(31,61,54,0.15);
+  --shadow-hard:     4px 4px 0px var(--dark-moss);
+  --shadow-floating: 6px 6px 0px rgba(31,61,54,0.18);
+
+  /* ── Transitions ── */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.25s ease;
+}
