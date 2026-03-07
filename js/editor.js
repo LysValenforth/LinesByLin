@@ -1,15 +1,117 @@
 let currentPostId     = null;
-let currentCollection = 'posts'; 
+let currentCollection = 'posts';
 let isSaving          = false;
+let isDirty           = false;
+let lastSavedAt       = null;
+let wordCountTimer    = null;
 
-const MEDIAHUB_CATS = ['beats', 'movies', 'tvshows'];
+const MEDIAHUB_CATS = ['beats', 'movies', 'tvshows', 'code'];
 
 // ── Per-category field panel IDs ─────────────────────────────────────────────
 const MEDIAHUB_PANELS = {
   beats:   'mediahub-beats-fields',
   movies:  'mediahub-movies-fields',
-  tvshows: 'mediahub-tvshows-fields'
+  tvshows: 'mediahub-tvshows-fields',
+  code:    'mediahub-code-fields'
 };
+
+// ── Code image preview ───────────────────────────────────────────────────────
+
+function updateCodeImagePreview(url) {
+  const wrap = document.getElementById('code-image-preview-wrap');
+  const img  = document.getElementById('code-image-preview-img');
+  if (!wrap || !img) return;
+  if (url) {
+    img.src = url;
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    img.src = '';
+  }
+}
+
+// ── Dirty flag ────────────────────────────────────────────────────────────────
+
+function markDirty() {
+  if (!currentPostId) return;
+  isDirty = true;
+  setSaveStatus('unsaved');
+}
+
+function markClean() {
+  isDirty    = false;
+  lastSavedAt = Date.now();
+  updateLastSavedLabel();
+}
+
+function updateLastSavedLabel() {
+  if (!lastSavedAt) return;
+  const secs = Math.round((Date.now() - lastSavedAt) / 1000);
+  const label = secs < 10 ? 'just now'
+              : secs < 60 ? `${secs}s ago`
+              : secs < 3600 ? `${Math.round(secs / 60)}m ago`
+              : 'a while ago';
+  ['save-status-text', 'save-status-text2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !isDirty) el.textContent = `Saved ${label}`;
+  });
+}
+
+// ── Word / character count ────────────────────────────────────────────────────
+
+function updateWordCount() {
+  clearTimeout(wordCountTimer);
+  wordCountTimer = setTimeout(() => {
+    const sections  = document.querySelectorAll('#editor-sections [contenteditable]');
+    let text = '';
+    sections.forEach(el => text += ' ' + (el.textContent || ''));
+    text = text.trim();
+    const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+    const chars = text.replace(/\s/g, '').length;
+    const el = document.getElementById('word-count-display');
+    if (el) el.textContent = words ? `${words} words · ${chars} chars` : '';
+  }, 300);
+}
+
+
+// ── Editor Mode (writing | mediahub | gallery) ───────────────────────────────
+// Controls whether the canvas + toolbar are visible or replaced with a panel msg
+
+function setEditorMode(mode) {
+  const toolbar  = document.querySelector('.editor-toolbar-top');
+  const canvas   = document.querySelector('.editor-canvas');
+  const noPost   = document.getElementById('no-post-msg');
+  const modeMsg  = document.getElementById('editor-mode-msg');
+
+  if (mode === 'writing') {
+    if (toolbar)  toolbar.style.display  = '';
+    if (canvas)   canvas.style.display   = '';
+    if (modeMsg)  modeMsg.style.display  = 'none';
+  } else {
+    // mediahub or gallery — hide the page canvas entirely
+    if (toolbar)  toolbar.style.display  = 'none';
+    if (canvas)   canvas.style.display   = 'none';
+    if (modeMsg) {
+      modeMsg.style.display = 'flex';
+      const icon  = modeMsg.querySelector('.mode-msg-icon');
+      const title = modeMsg.querySelector('.mode-msg-title');
+      const sub   = modeMsg.querySelector('.mode-msg-sub');
+      if (mode === 'code') {
+        if (icon)  icon.innerHTML  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
+        if (title) title.textContent = 'Code Project';
+        if (sub)   sub.textContent   = 'Fill in the details, links and image in the right panel, then hit Save.';
+      } else if (mode === 'mediahub') {
+        if (icon)  icon.innerHTML  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>';
+        if (title) title.textContent = 'MediaHub Item';
+        if (sub)   sub.textContent   = 'Fill in all the details in the right panel, then hit Save.';
+      } else {
+        if (icon)  icon.innerHTML  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><polyline points="21,15 16,10 5,21"/></svg>';
+        if (title) title.textContent = 'Gallery Manager';
+        if (sub)   sub.textContent   = 'Use the right panel to create collections and manage photos.';
+      }
+    }
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   injectGalleryTab();  
@@ -20,6 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
   bindImageUpload();
   bindSidebarTabs();
   bindCategoryChange();
+  bindSlugAutoFill();
+  bindTipsCollapse();
 
   // Load item from URL params
   const params   = new URLSearchParams(window.location.search);
@@ -32,6 +136,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setInterval(autoSave, 5000);
+
+  // Refresh "Saved Xm ago" label every 30s
+  setInterval(updateLastSavedLabel, 30000);
+
+  // Ctrl+S / Cmd+S to save
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveCurrentPost();
+    }
+  });
+
+  // Warn before leaving with unsaved changes
+  window.addEventListener('beforeunload', (e) => {
+    if (isDirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  // Mark dirty when any right-panel field changes
+  document.querySelectorAll('.field-input, .field-select').forEach(el => {
+    el.addEventListener('input',  markDirty);
+    el.addEventListener('change', markDirty);
+  });
+
+  // Code image preview — live update when URL field changes
+  document.getElementById('code-image-url')?.addEventListener('input', (e) => {
+    updateCodeImagePreview(e.target.value.trim());
+  });
+  document.getElementById('code-image-url')?.addEventListener('change', (e) => {
+    updateCodeImagePreview(e.target.value.trim());
+  });
 });
 
 // ── Sidebar Tabs ──────────────────────────────────────────────────────────────
@@ -44,12 +181,14 @@ function bindSidebarTabs() {
       if (which === 'gallery') {
         setActiveTab('gallery');
         showGalleryPanel(true);
+        setEditorMode('gallery');
         return;
       }
 
       showGalleryPanel(false);
       setActiveTab(which);
       currentCollection = which === 'mediahub' ? 'mediahub' : 'posts';
+      setEditorMode(which === 'mediahub' ? 'mediahub' : 'writing');
       loadPostsList();
     });
   });
@@ -88,8 +227,10 @@ async function loadPostsList() {
         const date = item.date
           ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '';
+        const draftBadge = item.published === false
+          ? '<span class="post-list-draft">Draft</span>' : '';
         el.innerHTML = `
-          <div class="post-list-title">${item.title}</div>
+          <div class="post-list-title">${item.title} ${draftBadge}</div>
           <div class="post-list-meta">
             <span class="post-list-category">${item.category || currentCollection}</span>
             <span>${date}</span>
@@ -141,15 +282,24 @@ async function loadPostIntoEditor(id) {
     const sel = document.getElementById('post-category');
     if (sel) sel.value = category;
 
+    // Slug, excerpt, cover, published (writing posts only)
+    safeSet('post-slug-input',    item.slug    || slugify(item.title || ''));
+    safeSet('post-excerpt-input', item.excerpt || '');
+    safeSet('post-cover-input',   item.coverImage || '');
+    const pubToggle = document.getElementById('post-published-toggle');
+    if (pubToggle) pubToggle.checked = item.published !== false; // default true
+
     // Show/hide the right mediahub panel
     if (currentCollection === 'mediahub') {
       showMediaHubFields(category);
       fillMediaHubFields(category, item);
+      setEditorMode(category === 'code' ? 'code' : 'mediahub');
     } else {
       showMediaHubFields(null);
+      setEditorMode('writing');
     }
 
-    // Show canvas
+    // Show canvas (only matters when in writing mode)
     document.getElementById('no-post-msg').style.display         = 'none';
     document.getElementById('editor-canvas-inner').style.display = 'block';
 
@@ -163,7 +313,9 @@ async function loadPostIntoEditor(id) {
     }
 
     setSaveStatus('saved');
+    markClean();
     highlightActivePost(id);
+    updateWordCount();
 
     const url = new URL(window.location);
     url.searchParams.set('id', id);
@@ -222,6 +374,18 @@ function fillMediaHubFields(category, item) {
     safeSet('tvshows-stars',       item.stars       || '');
     safeSet('tvshows-info-link',   item.infoLink    || '');
     safeSet('tvshows-video-url',   item.videoURL    || '');
+  } else if (category === 'code') {
+    safeSet('code-description', item.description || '');
+    safeSet('code-image-url',   item.imageURL    || '');
+    safeSet('code-github-url',  item.githubURL   || '');
+    safeSet('code-live-url',    item.liveURL     || '');
+    safeSet('code-tags',        item.tags        || '');
+    const statusEl = document.getElementById('code-status');
+    if (statusEl) statusEl.value = item.status || 'live';
+    const bannerEl = document.getElementById('code-banner');
+    if (bannerEl) bannerEl.value = item.banner || 'banner-green';
+    // Show image preview if URL is set
+    updateCodeImagePreview(item.imageURL || '');
   }
 }
 
@@ -240,12 +404,14 @@ function bindCategoryChange() {
     const isMedia = MEDIAHUB_CATS.includes(cat);
     if (isMedia) {
       showMediaHubFields(cat);
+      setEditorMode(cat === 'code' ? 'code' : 'mediahub');
       if (currentPostId) {
         currentCollection = 'mediahub';
         setActiveTab('mediahub');
       }
     } else {
       showMediaHubFields(null);
+      setEditorMode('writing');
     }
   });
 }
@@ -313,6 +479,54 @@ async function deleteCurrentPost() {
   }
 }
 
+// ── Slug helper ──────────────────────────────────────────────────────────────
+
+function slugify(str) {
+  return str.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 80);
+}
+
+// Auto-fill slug from title if slug is still empty or matches old title slug
+function bindSlugAutoFill() {
+  const titleInput = document.getElementById('post-title-input');
+  const slugInput  = document.getElementById('post-slug-input');
+  if (!titleInput || !slugInput) return;
+  let userEditedSlug = false;
+  slugInput.addEventListener('input', () => { userEditedSlug = slugInput.value !== ''; });
+  titleInput.addEventListener('input', () => {
+    if (!userEditedSlug || slugInput.value === '') {
+      slugInput.value = slugify(titleInput.value);
+      userEditedSlug = false;
+    }
+  });
+}
+
+// ── Tips panel collapse ───────────────────────────────────────────────────────
+
+function bindTipsCollapse() {
+  const tipsSection = document.getElementById('tips-control-section');
+  const tipsToggle  = document.getElementById('tips-toggle-btn');
+  const tipsBody    = document.getElementById('tips-body');
+  if (!tipsSection || !tipsToggle || !tipsBody) return;
+
+  const collapsed = localStorage.getItem('editor-tips-collapsed') === 'true';
+  if (collapsed) {
+    tipsBody.style.display = 'none';
+    tipsToggle.textContent = '+';
+  }
+
+  tipsToggle.addEventListener('click', () => {
+    const isHidden = tipsBody.style.display === 'none';
+    tipsBody.style.display = isHidden ? '' : 'none';
+    tipsToggle.textContent = isHidden ? '−' : '+';
+    localStorage.setItem('editor-tips-collapsed', (!isHidden).toString());
+  });
+}
+
 // ── Gather post data for save ─────────────────────────────────────────────────
 
 function gatherPostData() {
@@ -365,14 +579,35 @@ function gatherPostData() {
     };
   }
 
+  if (category === 'code') {
+    return {
+      title, category, date,
+      description: document.getElementById('code-description').value.trim(),
+      imageURL:    document.getElementById('code-image-url').value.trim(),
+      githubURL:   document.getElementById('code-github-url').value.trim(),
+      liveURL:     document.getElementById('code-live-url').value.trim(),
+      tags:        document.getElementById('code-tags').value.trim(),
+      status:      document.getElementById('code-status').value,
+      banner:      document.getElementById('code-banner').value,
+      // Clear unused fields
+      genre: '', creator: '', stars: '', songLink: '', artistLink: '', infoLink: '', videoURL: ''
+    };
+  }
+
   // (blog/poem/story)
-  const sections = gatherSections();
-  const content  = sections.map(s => {
+  const sections  = gatherSections();
+  const content   = sections.map(s => {
     const d = document.createElement('div');
     d.innerHTML = s.content;
     return d.textContent;
   }).join('\n\n');
-  return { title, category, date, sections, content };
+
+  const slug        = document.getElementById('post-slug-input')?.value.trim() || slugify(title);
+  const excerpt     = document.getElementById('post-excerpt-input')?.value.trim() || '';
+  const coverImage  = document.getElementById('post-cover-input')?.value.trim() || '';
+  const published   = document.getElementById('post-published-toggle')?.checked ?? true;
+
+  return { title, category, date, slug, excerpt, coverImage, published, sections, content };
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -413,6 +648,7 @@ async function saveCurrentPost() {
       await updatePost(currentPostId, data);
     }
     setSaveStatus('saved');
+    markClean();
     showToast('Saved successfully.', 'success');
     await loadPostsList();
   } catch (err) {
@@ -425,7 +661,7 @@ async function saveCurrentPost() {
 }
 
 async function autoSave() {
-  if (!currentPostId || isSaving) return;
+  if (!currentPostId || isSaving || !isDirty) return;
   isSaving = true;
   setSaveStatus('saving');
   try {
@@ -436,6 +672,7 @@ async function autoSave() {
       await updatePost(currentPostId, data);
     }
     setSaveStatus('saved');
+    markClean();
   } catch (err) {
     setSaveStatus('unsaved');
   } finally {
@@ -446,8 +683,12 @@ async function autoSave() {
 // ── Save Status ───────────────────────────────────────────────────────────────
 
 function setSaveStatus(status) {
-  const labels = { saving: 'Saving...', saved: 'Saved', unsaved: 'Unsaved', idle: '' };
-  const label  = labels[status] || '';
+  const labels = { saving: 'Saving...', saved: 'Saved', unsaved: 'Unsaved changes', idle: '' };
+  let label = labels[status] || '';
+  if (status === 'saved' && lastSavedAt) {
+    const secs = Math.round((Date.now() - lastSavedAt) / 1000);
+    label = secs < 5 ? 'Saved just now' : label;
+  }
 
   ['status-dot', 'status-dot2'].forEach(id => {
     const dot = document.getElementById(id);
@@ -470,6 +711,7 @@ function bindEditorControls() {
 // ── Formatting Toolbar ────────────────────────────────────────────────────────
 
 function bindFormatting() {
+  // Standard execCommand buttons
   document.querySelectorAll('.format-btn[data-cmd]').forEach(btn => {
     btn.addEventListener('mousedown', (e) => {
       e.preventDefault();
@@ -477,6 +719,77 @@ function bindFormatting() {
       const val = btn.dataset.val || null;
       document.execCommand(cmd, false, val);
     });
+  });
+
+  // Font family selector
+  const fontSel = document.getElementById('toolbar-font-family');
+  fontSel?.addEventListener('change', () => {
+    document.execCommand('fontName', false, fontSel.value);
+    fontSel.blur();
+  });
+
+  // Font size: – and + buttons + display
+  let currentFontSize = 16;
+  const sizeDisplay = document.getElementById('toolbar-font-size');
+
+  function applyFontSize(px) {
+    currentFontSize = Math.max(8, Math.min(72, px));
+    if (sizeDisplay) sizeDisplay.value = currentFontSize;
+    // execCommand fontSize uses 1-7 scale; use style instead
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      if (!range.collapsed) {
+        document.execCommand('fontSize', false, '7');
+        document.querySelectorAll('font[size="7"]').forEach(el => {
+          el.removeAttribute('size');
+          el.style.fontSize = currentFontSize + 'px';
+        });
+      }
+    }
+  }
+
+  document.getElementById('toolbar-size-dec')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    applyFontSize(currentFontSize - 2);
+  });
+  document.getElementById('toolbar-size-inc')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    applyFontSize(currentFontSize + 2);
+  });
+  sizeDisplay?.addEventListener('change', () => {
+    const v = parseInt(sizeDisplay.value);
+    if (!isNaN(v)) applyFontSize(v);
+  });
+
+  // Text color
+  const colorInput = document.getElementById('toolbar-text-color');
+  colorInput?.addEventListener('input', () => {
+    document.execCommand('foreColor', false, colorInput.value);
+  });
+  document.getElementById('toolbar-color-btn')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    colorInput?.click();
+  });
+
+  // Highlight color
+  const hlInput = document.getElementById('toolbar-highlight-color');
+  hlInput?.addEventListener('input', () => {
+    document.execCommand('hiliteColor', false, hlInput.value);
+  });
+  document.getElementById('toolbar-highlight-btn')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    hlInput?.click();
+  });
+
+  // Indent
+  document.getElementById('toolbar-indent-less')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    document.execCommand('outdent', false, null);
+  });
+  document.getElementById('toolbar-indent-more')?.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    document.execCommand('indent', false, null);
   });
 }
 
@@ -765,13 +1078,25 @@ function showGalleryPanel(visible) {
   const controlsContent = document.querySelector('.controls-content');
   const galleryPanel    = document.getElementById('gallery-manager-panel');
 
+  // Sidebar elements that don't apply to gallery
+  const searchWrap  = document.querySelector('.sidebar-search-wrap');
+  const sideActions = document.querySelector('.sidebar-actions');
+  const postsList   = document.getElementById('posts-list');
+
   if (visible) {
     showMediaHubFields(null);
     if (controlsContent) controlsContent.style.display = 'none';
     if (galleryPanel)    galleryPanel.style.display    = 'block';
+    if (searchWrap)      searchWrap.style.display      = 'none';
+    if (sideActions)     sideActions.style.display     = 'none';
+    if (postsList)       postsList.style.display       = 'none';
+    setEditorMode('gallery');
   } else {
     if (controlsContent) controlsContent.style.display = '';
     if (galleryPanel)    galleryPanel.style.display    = 'none';
+    if (searchWrap)      searchWrap.style.display      = '';
+    if (sideActions)     sideActions.style.display     = '';
+    if (postsList)       postsList.style.display       = '';
     const sel = document.getElementById('post-category');
     if (sel) sel.dispatchEvent(new Event('change'));
   }

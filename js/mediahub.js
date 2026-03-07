@@ -1,8 +1,9 @@
-// Load and render items (beats, movies, tvshows)
+// Load and render media items (beats, movies, tvshows)
 
 document.addEventListener('DOMContentLoaded', () => {
   const category = document.body.dataset.mediahub;
-  if (category) {
+  if (category && category !== 'beats') {
+    // beats.html uses its own inline React player
     loadMediaHubPage(category);
   }
 
@@ -19,6 +20,11 @@ async function loadMediaHubPage(category) {
   if (!grid) return;
 
   grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading...</p></div>';
+
+  if (typeof getMediaHubByCategory !== 'function') {
+    grid.innerHTML = '<p class="error-text">Firebase not configured. Add your config to js/firebase.js.</p>';
+    return;
+  }
 
   let items = [];
   try {
@@ -40,14 +46,14 @@ async function loadMediaHubPage(category) {
   render(items);
 
   if (searchInput) {
-    searchInput.addEventListener('input', () => {
+    searchInput.addEventListener('input', debounce(() => {
       const q = searchInput.value.toLowerCase();
       render(items.filter(i =>
-        i.title.toLowerCase().includes(q) ||
+        (i.title   || '').toLowerCase().includes(q) ||
         (i.creator || '').toLowerCase().includes(q) ||
-        (i.genre || '').toLowerCase().includes(q)
+        (i.genre   || '').toLowerCase().includes(q)
       ));
-    });
+    }, 200));
   }
 }
 
@@ -57,6 +63,11 @@ async function loadMediaHubFeatured() {
   const container = document.getElementById('mediahub-featured');
   if (!container) return;
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+
+  if (typeof getAllMediaHub !== 'function') {
+    container.innerHTML = '<p class="error-text">Firebase not configured.</p>';
+    return;
+  }
 
   try {
     const items = await getAllMediaHub();
@@ -103,9 +114,9 @@ function buildMovieCard(item, category) {
     <div class="media-card-body">
       <span class="media-card-genre">${item.genre || catLabel}</span>
       ${titleEl}
-      ${item.creator     ? `<p class="media-card-creator">${item.creator}</p>`                       : ''}
-      ${item.description ? `<p class="media-card-description">${item.description}</p>`               : ''}
-      ${item.stars       ? `<p class="media-card-stars">Starring: ${item.stars}</p>`                 : ''}
+      ${item.creator     ? `<p class="media-card-creator">${item.creator}</p>`         : ''}
+      ${item.description ? `<p class="media-card-description">${item.description}</p>` : ''}
+      ${item.stars       ? `<p class="media-card-stars">Starring: ${item.stars}</p>`   : ''}
     </div>
   `;
   return card;

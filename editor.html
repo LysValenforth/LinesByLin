@@ -29,7 +29,7 @@
         <button id="btn-delete-post" class="btn btn-danger btn-small">
           <img src="assets/icons/delete.svg" class="icon-btn-dark" style="filter:none;opacity:.8;" alt=""> Delete
         </button>
-        <a href="index.html" class="btn btn-secondary btn-small">← Site</a>
+        <a href="index.html" class="btn btn-secondary btn-small">Site</a>
         <!-- Mobile panel toggles (hidden on desktop) -->
         <button class="mobile-toolbar-btn" id="btn-toggle-sidebar" style="display:none;"><img src="assets/icons/menu.svg" style="width:18px;height:18px;" alt="menu"></button>
       </div>
@@ -76,34 +76,95 @@
     <!-- ── CENTER PANEL: Visual Editor ────────────── -->
     <main class="editor-main">
 
-      <!-- Top toolbar bar -->
+      <!-- ── Docs-style Formatting Toolbar ───────────────── -->
       <div class="editor-toolbar-top">
-        <!-- Formatting buttons -->
         <div class="formatting-bar">
+
+          <!-- Font Family -->
+          <select id="toolbar-font-family" class="toolbar-select toolbar-font-sel" title="Font family">
+            <option value="Nunito">Nunito</option>
+            <option value="Patrick Hand">Patrick Hand</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier New</option>
+          </select>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Font Size -->
+          <div class="toolbar-size-group">
+            <button id="toolbar-size-dec" class="format-btn" title="Decrease size">−</button>
+            <input  id="toolbar-font-size" class="toolbar-size-input" type="number" value="16" min="8" max="72" title="Font size">
+            <button id="toolbar-size-inc" class="format-btn" title="Increase size">+</button>
+          </div>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Text Style -->
           <button class="format-btn" data-cmd="bold"          title="Bold"><b>B</b></button>
           <button class="format-btn" data-cmd="italic"        title="Italic"><i>I</i></button>
           <button class="format-btn" data-cmd="underline"     title="Underline"><u>U</u></button>
           <button class="format-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
-          <button class="format-btn" data-cmd="formatBlock" data-val="h1" title="H1">H1</button>
-          <button class="format-btn" data-cmd="formatBlock" data-val="h2" title="H2">H2</button>
-          <button class="format-btn" data-cmd="formatBlock" data-val="h3" title="H3">H3</button>
-          <button class="format-btn" data-cmd="formatBlock" data-val="p"  title="Paragraph">¶</button>
-          <button class="format-btn" data-cmd="insertUnorderedList" title="Bullet list">•</button>
-          <button class="format-btn" data-cmd="insertOrderedList"   title="Numbered list">1.</button>
-          <button class="format-btn" data-cmd="justifyLeft"   title="Left">⇤</button>
-          <button class="format-btn" data-cmd="justifyCenter" title="Center">≡</button>
-          <button class="format-btn" data-cmd="justifyRight"  title="Right">⇥</button>
-          <button class="format-btn" id="btn-insert-link"     title="Link">Ln</button>
-          <button class="format-btn" data-cmd="removeFormat"  title="Clear">X</button>
+
+          <!-- Text Color -->
+          <button id="toolbar-color-btn" class="format-btn toolbar-color-btn" title="Text color">
+            <span class="color-letter">A</span>
+            <span class="color-swatch" id="color-swatch" style="background:#2F5D50;"></span>
+          </button>
+          <input type="color" id="toolbar-text-color" value="#2F5D50" style="display:none;">
+
+          <!-- Highlight -->
+          <button id="toolbar-highlight-btn" class="format-btn toolbar-color-btn" title="Highlight">
+            <span class="color-letter" style="background:rgba(255,220,100,0.5);padding:0 2px;">H</span>
+            <span class="color-swatch" id="hl-swatch" style="background:#FFDC64;"></span>
+          </button>
+          <input type="color" id="toolbar-highlight-color" value="#FFDC64" style="display:none;">
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Block Format -->
+          <select id="toolbar-block-format" class="toolbar-select toolbar-block-sel" title="Paragraph style">
+            <option value="p">Normal</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="blockquote">Quote</option>
+            <option value="pre">Code</option>
+          </select>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Alignment — clean letter labels -->
+          <button class="format-btn tb-align" data-cmd="justifyLeft"    title="Align left">L</button>
+          <button class="format-btn tb-align" data-cmd="justifyCenter"  title="Align center">C</button>
+          <button class="format-btn tb-align" data-cmd="justifyRight"   title="Align right">R</button>
+          <button class="format-btn tb-align" data-cmd="justifyFull"    title="Justify">J</button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Lists & Indent — clean text -->
+          <button class="format-btn tb-list" data-cmd="insertUnorderedList" title="Bullet list">•≡</button>
+          <button class="format-btn tb-list" data-cmd="insertOrderedList"   title="Numbered list">1≡</button>
+          <button id="toolbar-indent-less" class="format-btn tb-indent" title="Decrease indent">⇤</button>
+          <button id="toolbar-indent-more" class="format-btn tb-indent" title="Increase indent">⇥</button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Link & Clear -->
+          <button class="format-btn" id="btn-insert-link" title="Insert link">Ln</button>
+          <button class="format-btn tb-clear" data-cmd="removeFormat" title="Clear formatting">×</button>
+
         </div>
 
-        <!-- Editor status + actions -->
-        <div class="editor-actions">
-          <div class="editor-status">
-            <div class="status-indicator" id="status-dot2"></div>
-            <span id="save-status-text2"></span>
-          </div>
-        </div>
+        <!-- Right side: word count -->
+        <div id="word-count-display" class="word-count-display"></div>
+      </div>
+
+      <!-- Mode message (shown when mediahub or gallery is active) -->
+      <div id="editor-mode-msg" class="editor-mode-msg" style="display:none;">
+        <div class="mode-msg-icon"></div>
+        <div class="mode-msg-title"></div>
+        <div class="mode-msg-sub"></div>
       </div>
 
       <!-- Canvas area -->
@@ -151,9 +212,33 @@
               <option value="movies">Film Movies</option>
               <option value="tvshows">TV Shows</option>
             </optgroup>
+            <optgroup label="Work">
+              <option value="code">Code Project</option>
+            </optgroup>
           </select>
           <label class="field-label">Date</label>
           <input type="date" id="post-date" class="field-input">
+
+          <label class="field-label">Slug <span style="font-size:10px;font-weight:400;opacity:.6;">(URL-friendly ID)</span></label>
+          <input type="text" id="post-slug-input" class="field-input" placeholder="my-post-title">
+
+          <label class="field-label">Excerpt <span style="font-size:10px;font-weight:400;opacity:.6;">(shown on cards)</span></label>
+          <textarea id="post-excerpt-input" class="field-input" rows="2" style="resize:vertical;" placeholder="A short summary..."></textarea>
+
+          <label class="field-label">Cover Image URL</label>
+          <input type="text" id="post-cover-input" class="field-input" placeholder="https://... or assets/image.jpg">
+
+          <!-- Published toggle -->
+          <div class="field-published-row">
+            <label class="field-label" style="margin:0;">Published</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="post-published-toggle" checked>
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </label>
+          </div>
+          <p class="field-hint">Unpublished posts won't appear on the public site.</p>
         </div>
 
         <!-- MediaHub: My Beats fields -->
@@ -232,6 +317,50 @@
           <input type="url" id="tvshows-video-url" class="field-input" placeholder="https://www.youtube.com/embed/...">
         </div>
 
+
+        <!-- Code Project fields -->
+        <div class="control-section" id="mediahub-code-fields" style="display:none;">
+          <div class="control-section-title">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;vertical-align:middle;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Code Project Details
+          </div>
+
+          <label class="field-label">Description</label>
+          <textarea id="code-description" class="field-input" rows="3" style="resize:vertical;" placeholder="What does this project do? What did you learn?"></textarea>
+
+          <label class="field-label">Preview Image URL</label>
+          <input type="url" id="code-image-url" class="field-input" placeholder="https://... screenshot or banner">
+          <div id="code-image-preview-wrap" style="display:none; margin-top:6px;">
+            <img id="code-image-preview-img" src="" alt="Preview" style="width:100%;border-radius:var(--radius-md);border:var(--border-width) solid var(--warm-beige);object-fit:cover;max-height:140px;">
+          </div>
+
+          <label class="field-label" style="margin-top:var(--space-sm);">GitHub URL</label>
+          <input type="url" id="code-github-url" class="field-input" placeholder="https://github.com/you/repo">
+
+          <label class="field-label">Live Site URL</label>
+          <input type="url" id="code-live-url" class="field-input" placeholder="https://yoursite.com (optional)">
+
+          <label class="field-label">Tech Tags <span style="font-size:10px;font-weight:400;opacity:.6;">comma-separated</span></label>
+          <input type="text" id="code-tags" class="field-input" placeholder="HTML, CSS, JavaScript, Firebase">
+
+          <label class="field-label" style="margin-top:var(--space-sm);">Status</label>
+          <select id="code-status" class="field-select">
+            <option value="live">Live</option>
+            <option value="wip">In Progress</option>
+            <option value="archived">Archived</option>
+          </select>
+
+          <label class="field-label" style="margin-top:var(--space-sm);">Banner Style</label>
+          <select id="code-banner" class="field-select">
+            <option value="banner-green">Forest Green</option>
+            <option value="banner-blue">Soft Blue</option>
+            <option value="banner-moss">Dark Moss</option>
+            <option value="banner-beige">Warm Beige</option>
+            <option value="banner-teal">Teal</option>
+            <option value="banner-dark">Deep Dark</option>
+          </select>
+        </div>
+
         <!-- Add Sections -->
         <div class="control-section">
           <div class="control-section-title">Add Sections</div>
@@ -271,16 +400,22 @@
           <input type="file" id="image-upload-input" accept="image/*" style="display:none">
         </div>
 
-        <!-- Tips -->
-        <div class="control-section">
-          <div class="control-section-title">Tips</div>
-          <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.7; margin:0;">
-            • Click any section to edit text inline.<br>
-            • Hover a section to reveal drag handle &amp; delete.<br>
-            • Drag the ⠿ handle to reorder sections.<br>
-            • Changes autosave every 5 seconds.<br>
-            • Use the toolbar to format selected text.
-          </p>
+        <!-- Tips (collapsible) -->
+        <div class="control-section" id="tips-control-section">
+          <div class="control-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+            Tips
+            <button id="tips-toggle-btn" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--forest-green);padding:0;line-height:1;">−</button>
+          </div>
+          <div id="tips-body">
+            <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.8; margin:0;">
+              Click any section to edit inline.<br>
+              Hover a section to reveal drag handle.<br>
+              Drag ⠿ to reorder · ⊕ to duplicate.<br>
+              Ctrl+Z undoes section-level actions.<br>
+              Tab / Shift+Tab moves between sections.<br>
+              Ctrl+S saves. Autosave every 5 seconds.
+            </p>
+          </div>
         </div>
 
         <!-- Navigate -->
@@ -332,6 +467,25 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('btn-save-mobile')?.addEventListener('click', saveCurrentPost);
+
+      // Block format dropdown
+      document.getElementById('toolbar-block-format')?.addEventListener('mousedown', (e) => {
+        // don't blur the editor
+      });
+      document.getElementById('toolbar-block-format')?.addEventListener('change', (e) => {
+        document.execCommand('formatBlock', false, e.target.value);
+        e.target.blur();
+      });
+
+      // Sync color swatches to pickers
+      document.getElementById('toolbar-text-color')?.addEventListener('input', (e) => {
+        const sw = document.getElementById('color-swatch');
+        if (sw) sw.style.background = e.target.value;
+      });
+      document.getElementById('toolbar-highlight-color')?.addEventListener('input', (e) => {
+        const sw = document.getElementById('hl-swatch');
+        if (sw) sw.style.background = e.target.value;
+      });
       document.getElementById('btn-delete-post-side')?.addEventListener('click', deleteCurrentPost);
       document.getElementById('btn-insert-link')?.addEventListener('mousedown', (e) => {
         e.preventDefault();

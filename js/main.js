@@ -1,5 +1,14 @@
 // Navigation, post loading, back-to-top
 
+// ─── Debounce ──────────────────────────────────────────────────────────────────
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initBackToTop();
@@ -9,10 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPageContent(pageCategory);
   }
 
-  const mediahubCategory = document.body.dataset.mediahub;
-  if (mediahubCategory && mediahubCategory !== 'beats') {
-    loadMediahubContent(mediahubCategory);
-  }
+  // Media pages (movies, tvshows) are now handled by mediahub.js
+  // Beats page uses its own inline React component
 
   if (document.getElementById('featured-grid')) {
     loadFeaturedPosts();
@@ -72,11 +79,17 @@ function initBackToTop() {
   });
 }
 
+// ─── Featured Posts (Home) ────────────────────────────────────────────────────
 
 async function loadFeaturedPosts() {
   const grid = document.getElementById('featured-grid');
   if (!grid) return;
   grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading works...</p></div>';
+
+  if (typeof getAllPosts !== 'function') {
+    grid.innerHTML = '<p class="error-text">Firebase not configured. Add your config to js/firebase.js.</p>';
+    return;
+  }
 
   try {
     const posts = await getAllPosts();
@@ -91,6 +104,17 @@ async function loadFeaturedPosts() {
   }
 }
 
+// ─── Sort Helper ──────────────────────────────────────────────────────────────
+
+function sortByDate(posts, order) {
+  return [...posts].sort((a, b) => {
+    const da = a.date ? new Date(a.date) : 0;
+    const db = b.date ? new Date(b.date) : 0;
+    return order === 'oldest' ? da - db : db - da;
+  });
+}
+
+// ─── Page Content (Blog / Poems / Stories) ────────────────────────────────────
 
 const POSTS_PER_PAGE = 5;
 
@@ -101,6 +125,11 @@ async function loadPageContent(category) {
 
   grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading...</p></div>';
 
+  if (typeof getPostsByCategory !== 'function') {
+    grid.innerHTML = '<p class="error-text">Firebase not configured. Add your config to js/firebase.js.</p>';
+    return;
+  }
+
   let allPosts = [];
   try {
     allPosts = await getPostsByCategory(category);
@@ -109,9 +138,42 @@ async function loadPageContent(category) {
     return;
   }
 
-  let currentPage    = 1;
-  let filteredPosts  = allPosts;
+  // Default: newest first
+  allPosts = sortByDate(allPosts, 'newest');
 
+  let currentPage   = 1;
+  let filteredPosts = allPosts;
+  let sortOrder     = 'newest';
+
+  // ── Sort controls ─────────────────────────────────────────────────────────
+  const sortWrap = document.createElement('div');
+  sortWrap.className = 'sort-wrap';
+  sortWrap.innerHTML = `
+    <span class="sort-label">Sort:</span>
+    <button class="sort-btn active" data-sort="newest">Newest</button>
+    <button class="sort-btn" data-sort="oldest">Oldest</button>
+  `;
+  grid.parentNode.insertBefore(sortWrap, grid);
+
+  sortWrap.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sortOrder = btn.dataset.sort;
+      sortWrap.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const q = searchInput ? searchInput.value.toLowerCase() : '';
+      filteredPosts = sortByDate(
+        q ? allPosts.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          stripHTML(p.content || '').toLowerCase().includes(q)
+        ) : allPosts,
+        sortOrder
+      );
+      currentPage = 1;
+      renderPage(filteredPosts, currentPage);
+    });
+  });
+
+  // ── Pagination container ──────────────────────────────────────────────────
   let paginationEl = document.getElementById('pagination');
   if (!paginationEl) {
     paginationEl = document.createElement('div');
@@ -135,20 +197,17 @@ async function loadPageContent(category) {
 
     pagePosts.forEach(post => grid.appendChild(buildCard(post, false)));
 
-    // Build pagination controls
     if (totalPages <= 1) return;
 
-    // Prev button
     const prev = document.createElement('button');
     prev.className = 'pagination-btn' + (page === 1 ? ' disabled' : '');
-    prev.innerHTML = '← Prev';
+    prev.innerHTML = 'Prev';
     prev.disabled  = page === 1;
     prev.addEventListener('click', () => {
       if (currentPage > 1) { currentPage--; renderPage(filteredPosts, currentPage); scrollToGrid(); }
     });
     paginationEl.appendChild(prev);
 
-    // Page number buttons
     for (let i = 1; i <= totalPages; i++) {
       const btn = document.createElement('button');
       btn.className = 'pagination-btn pagination-num' + (i === page ? ' active' : '');
@@ -161,17 +220,15 @@ async function loadPageContent(category) {
       paginationEl.appendChild(btn);
     }
 
-    // Next button
     const next = document.createElement('button');
     next.className = 'pagination-btn' + (page === totalPages ? ' disabled' : '');
-    next.innerHTML = 'Next →';
+    next.innerHTML = 'Next';
     next.disabled  = page === totalPages;
     next.addEventListener('click', () => {
       if (currentPage < totalPages) { currentPage++; renderPage(filteredPosts, currentPage); scrollToGrid(); }
     });
     paginationEl.appendChild(next);
 
-    // Page info
     const info = document.createElement('span');
     info.className = 'pagination-info';
     info.textContent = `Page ${page} of ${totalPages}`;
@@ -185,149 +242,19 @@ async function loadPageContent(category) {
   renderPage(filteredPosts, currentPage);
 
   if (searchInput) {
-    searchInput.addEventListener('input', () => {
+    searchInput.addEventListener('input', debounce(() => {
       const q = searchInput.value.toLowerCase();
-      filteredPosts = allPosts.filter(p =>
-        p.title.toLowerCase().includes(q) ||
-        stripHTML(p.content || '').toLowerCase().includes(q)
+      filteredPosts = sortByDate(
+        q ? allPosts.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          stripHTML(p.content || '').toLowerCase().includes(q)
+        ) : allPosts,
+        sortOrder
       );
       currentPage = 1;
       renderPage(filteredPosts, currentPage);
-    });
+    }, 200));
   }
-}
-
-// ─── Page Content Pagination ────────────────────────
-
-const MEDIAHUB_PER_PAGE = 8;
-
-async function loadMediahubContent(category) {
-  const grid        = document.getElementById('mediahub-grid');
-  const searchInput = document.getElementById('search-input');
-  if (!grid) return;
-
-  grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading...</p></div>';
-
-  let allItems = [];
-  try {
-    allItems = await getMediaHubByCategory(category);
-  } catch (e) {
-    grid.innerHTML = '<p class="error-text">Could not load content. Check your Firebase config.</p>';
-    return;
-  }
-
-  let currentPage   = 1;
-  let filteredItems = allItems;
-
-  let paginationEl = document.getElementById('pagination');
-  if (!paginationEl) {
-    paginationEl = document.createElement('div');
-    paginationEl.id = 'pagination';
-    paginationEl.className = 'pagination';
-    grid.parentNode.insertBefore(paginationEl, grid.nextSibling);
-  }
-
-  function renderPage(items, page) {
-    grid.innerHTML = '';
-    paginationEl.innerHTML = '';
-
-    if (items.length === 0) {
-      grid.innerHTML = '<div class="empty-state"><p>No items found.</p></div>';
-      return;
-    }
-
-    const totalPages = Math.ceil(items.length / MEDIAHUB_PER_PAGE);
-    const start      = (page - 1) * MEDIAHUB_PER_PAGE;
-    const pageItems  = items.slice(start, start + MEDIAHUB_PER_PAGE);
-
-    pageItems.forEach(item => grid.appendChild(buildMediaCard(item)));
-
-    if (totalPages <= 1) return;
-
-    const prev = document.createElement('button');
-    prev.className = 'pagination-btn' + (page === 1 ? ' disabled' : '');
-    prev.innerHTML = '← Prev';
-    prev.disabled  = page === 1;
-    prev.addEventListener('click', () => {
-      if (currentPage > 1) { currentPage--; renderPage(filteredItems, currentPage); scrollToGrid(); }
-    });
-    paginationEl.appendChild(prev);
-
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'pagination-btn pagination-num' + (i === page ? ' active' : '');
-      btn.textContent = i;
-      btn.addEventListener('click', () => {
-        currentPage = i;
-        renderPage(filteredItems, currentPage);
-        scrollToGrid();
-      });
-      paginationEl.appendChild(btn);
-    }
-
-    const next = document.createElement('button');
-    next.className = 'pagination-btn' + (page === totalPages ? ' disabled' : '');
-    next.innerHTML = 'Next →';
-    next.disabled  = page === totalPages;
-    next.addEventListener('click', () => {
-      if (currentPage < totalPages) { currentPage++; renderPage(filteredItems, currentPage); scrollToGrid(); }
-    });
-    paginationEl.appendChild(next);
-
-    const info = document.createElement('span');
-    info.className = 'pagination-info';
-    info.textContent = `Page ${page} of ${totalPages}`;
-    paginationEl.appendChild(info);
-  }
-
-  function scrollToGrid() {
-    grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  renderPage(filteredItems, currentPage);
-
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.toLowerCase();
-      filteredItems = allItems.filter(item =>
-        (item.title       || '').toLowerCase().includes(q) ||
-        (item.creator     || '').toLowerCase().includes(q) ||
-        (item.genre       || '').toLowerCase().includes(q) ||
-        (item.description || '').toLowerCase().includes(q)
-      );
-      currentPage = 1;
-      renderPage(filteredItems, currentPage);
-    });
-  }
-}
-
-// ─── MediaHub Card Builder ─────────────────────────────────────────────────────
-
-function buildMediaCard(item) {
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const title       = item.title       || 'Untitled';
-  const creator     = item.creator     || '';
-  const genre       = item.genre       || '';
-  const description = item.description || '';
-  const imageURL    = item.imageURL    || '';
-  const rating      = item.rating      || '';
-  const year        = item.year        || '';
-  const trailerURL  = item.trailerURL  || item.trailer || '';
-
-  const metaParts = [creator, year, genre].filter(Boolean).join(' · ');
-
-  card.innerHTML = `
-    ${imageURL ? `<img class="card-image" src="${imageURL}" alt="${title}">` : ''}
-    ${genre    ? `<span class="card-category">${genre}</span>` : ''}
-    <h3 class="card-title">${title}</h3>
-    ${metaParts  ? `<p class="card-date">${metaParts}</p>` : ''}
-    ${rating     ? `<p class="card-date">★ ${rating}</p>` : ''}
-    ${description ? `<p class="card-preview">${description.slice(0, 140)}${description.length > 140 ? '…' : ''}</p>` : ''}
-    ${trailerURL  ? `<a href="${trailerURL}" class="card-link" target="_blank" rel="noopener">Watch Trailer →</a>` : ''}
-  `;
-  return card;
 }
 
 // ─── Card Builder ──────────────────────────────────────────────────────────────
@@ -358,8 +285,8 @@ function buildCard(post, compact) {
     <span class="card-category">${catLabel}</span>
     <h3 class="card-title">${post.title}</h3>
     <p class="card-date">${date}</p>
-    ${!compact && preview ? `<p class="card-preview">${preview}${preview.length >= 140 ? '…' : ''}</p>` : ''}
-    <a href="post.html?id=${post.id}" class="card-link">Read →</a>
+    ${!compact && preview ? `<p class="card-preview">${preview}${preview.length >= 140 ? '&hellip;' : ''}</p>` : ''}
+    <a href="post.html?id=${post.id}" class="card-link">Read</a>
   `;
   return card;
 }
@@ -372,9 +299,17 @@ function stripHTML(html) {
   return d.textContent || d.innerText || '';
 }
 
+// ─── AIM Shortcut (Editor Access) ─────────────────────────────────────────────
+
 (function() {
   let aimBuffer = '';
   let aimTimer  = null;
+
+  function checkAccess(input) {
+    try {
+      return btoa(unescape(encodeURIComponent(input))) === 'QWJpZ2FpbDI1KzIw';
+    } catch(e) { return false; }
+  }
 
   document.addEventListener('keydown', function(e) {
     const el  = document.activeElement;
@@ -397,7 +332,7 @@ function stripHTML(html) {
       clearTimeout(aimTimer);
       if (window.location.pathname.endsWith('editor.html')) return;
       const pwd = prompt('Enter access code:');
-      if (pwd === 'Abigail25+20') {
+      if (checkAccess(pwd)) {
         window.location.href = 'editor.html';
       } else if (pwd !== null) {
         alert('Access Denied');
@@ -417,12 +352,12 @@ document.querySelectorAll('a').forEach(link => {
       !href.startsWith('mailto') &&
       !href.startsWith('javascript') &&
       href !== '' &&
-      !this.hasAttribute('data-no-transition')
+      !this.hasAttribute('data-no-transition') &&
+      !this.target
     ) {
       e.preventDefault();
-      document.body.style.transition = 'opacity 0.3s ease';
-      document.body.style.opacity = '0';
-      setTimeout(() => window.location.href = href, 300);
+      document.body.classList.add('page-exit');
+      setTimeout(() => window.location.href = href, 280);
     }
   });
 });

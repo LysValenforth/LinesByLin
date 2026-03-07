@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code — LINESBYLIN</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Page Header ─────────────────────────────────── */
+    .code-hero {
+      background: var(--bg-surface);
+      border-bottom: var(--border-width) solid var(--warm-beige);
+      padding: var(--space-xl) 0 var(--space-lg);
+    }
+    .code-hero-inner {
+      max-width: 760px;
+    }
+    .code-eyebrow {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--forest-green);
+      opacity: 0.7;
+      display: block;
+      margin-bottom: var(--space-xs);
+    }
+    .code-hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: var(--space-sm);
+    }
+    .code-hero p {
+      font-family: var(--font-body);
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 560px;
+    }
+
+    /* ── Filter Tabs ──────────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-lg);
+    }
+    .filter-btn {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
+      padding: 6px 16px;
+      border: var(--border-width) solid var(--warm-beige);
+      border-radius: var(--radius-full);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .filter-btn:hover { border-color: var(--forest-green); color: var(--forest-green); }
+    .filter-btn.active {
+      background: var(--forest-green);
+      border-color: var(--forest-green);
+      color: var(--cream);
+    }
+
+    /* ── Projects Grid ────────────────────────────────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--space-md);
+    }
+
+    /* ── Project Card ─────────────────────────────────── */
+    .project-card {
+      background: var(--bg-surface);
+      border: var(--border-width) solid var(--warm-beige);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all var(--transition-normal);
+      box-shadow: var(--shadow-soft);
+    }
+    .project-card:hover {
+      box-shadow: var(--shadow-floating);
+      transform: translateY(-4px);
+      border-color: var(--soft-blue);
+    }
+
+    /* Card visual banner */
+    .project-banner {
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .project-banner-icon {
+      font-size: 2.8rem;
+      z-index: 1;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+    }
+    /* Individual banner color themes */
+    .banner-green   { background: linear-gradient(135deg, #2F5D50 0%, #4a8a78 100%); }
+    .banner-blue    { background: linear-gradient(135deg, #A7C4BC 0%, #7aa9a0 100%); }
+    .banner-moss    { background: linear-gradient(135deg, #1E3D36 0%, #2F5D50 100%); }
+    .banner-beige   { background: linear-gradient(135deg, #E8DCC8 0%, #d4c4a8 100%); }
+    .banner-teal    { background: linear-gradient(135deg, #4a8a78 0%, #A7C4BC 100%); }
+    .banner-dark    { background: linear-gradient(135deg, #1E3D36 0%, #0d1f1b 100%); }
+
+    /* Subtle grid pattern overlay */
+    .project-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .project-body {
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: var(--space-xs);
+    }
+
+    .project-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-xl);
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .project-desc {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: var(--space-xs);
+    }
+    .project-tag {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: var(--font-semibold);
+      letter-spacing: 0.03em;
+      padding: 3px 9px;
+      border-radius: var(--radius-sm);
+      background: var(--warm-beige);
+      color: var(--dark-moss);
+      border: var(--border-width) solid transparent;
+    }
+    .project-tag.tag-js      { background: rgba(247,223,30,0.18);  color: #8a6f00; }
+    .project-tag.tag-ts      { background: rgba(49,120,198,0.12);  color: #1d4f8a; }
+    .project-tag.tag-py      { background: rgba(55,118,171,0.14);  color: #1e4e73; }
+    .project-tag.tag-html    { background: rgba(213,90,49,0.12);   color: #8a2e0d; }
+    .project-tag.tag-react   { background: rgba(97,218,251,0.15);  color: #0b687a; }
+    .project-tag.tag-firebase{ background: rgba(255,160,0,0.14);   color: #7a4700; }
+    .project-tag.tag-css     { background: rgba(38,77,228,0.10);   color: #1b3799; }
+
+    .project-links {
+      display: flex;
+      gap: var(--space-xs);
+      padding-top: var(--space-sm);
+      border-top: var(--border-width) solid var(--warm-beige);
+      margin-top: var(--space-sm);
+    }
+    .project-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: var(--font-semibold);
+      color: var(--forest-green);
+      text-decoration: none;
+      padding: 6px 12px;
+      border: var(--border-width) solid var(--warm-beige);
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      transition: all var(--transition-fast);
+    }
+    .project-link:hover {
+      background: var(--forest-green);
+      border-color: var(--forest-green);
+      color: var(--cream);
+    }
+    .project-link svg { flex-shrink: 0; }
+    .project-link-live {
+      background: var(--forest-green);
+      border-color: var(--forest-green);
+      color: var(--cream);
+    }
+    .project-link-live:hover {
+      background: var(--dark-moss);
+      border-color: var(--dark-moss);
+    }
+
+    /* Status badge */
+    .project-status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: var(--font-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      z-index: 2;
+    }
+    .status-live    { background: rgba(255,255,255,0.95); color: #2F5D50; }
+    .status-wip     { background: rgba(255,255,255,0.95); color: #b05e00; }
+    .status-archived{ background: rgba(0,0,0,0.4);        color: #ddd; }
+
+    /* ── Hidden cards (filter) ────────────────────────── */
+    .project-card.hidden {
+      display: none;
+    }
+
+    /* ── Empty state ──────────────────────────────────── */
+    .projects-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: var(--space-xl);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-style: italic;
+    }
+
+    /* ── Stats strip ──────────────────────────────────── */
+    .code-stats {
+      display: flex;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+      margin-top: var(--space-md);
+    }
+    .code-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .code-stat-num {
+      font-family: var(--font-heading);
+      font-size: var(--text-2xl);
+      color: var(--forest-green);
+      line-height: 1;
+    }
+    .code-stat-label {
+      font-family: var(--font-body);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    @media (max-width: 640px) {
+      .projects-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <img src="assets/icons/logo.svg" class="nav-icon" alt="" style="width:50px;height:50px;"> LINESBYLIN
+      </a>
+      <ul class="nav-menu" id="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="index.html#about" class="nav-link">About</a></li>
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle active">
+            <img src="assets/icons/work.svg" class="nav-icon" alt=""> Work
+          </a>
+          <div class="dropdown-menu">
+            <a href="blog.html" class="dropdown-item">
+              <img src="assets/icons/blog.svg" class="nav-icon" alt=""> Blog
+            </a>
+            <a href="poems.html" class="dropdown-item">
+              <img src="assets/icons/poem.svg" class="nav-icon" alt=""> Poems
+            </a>
+            <a href="stories.html" class="dropdown-item">
+              <img src="assets/icons/story.svg" class="nav-icon" alt=""> Stories
+            </a>
+            <a href="biography.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Biography
+            </a>
+            <a href="code.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code
+            </a>
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle">
+            <img src="assets/icons/media.svg" class="nav-icon" alt=""> MediaHub
+          </a>
+          <div class="dropdown-menu">
+            <a href="beats.html" class="dropdown-item">
+              <img src="assets/icons/music.svg" class="nav-icon" alt=""> Beats
+            </a>
+            <a href="movies.html" class="dropdown-item">
+              <img src="assets/icons/movie.svg" class="nav-icon" alt=""> Movies
+            </a>
+            <a href="tvshows.html" class="dropdown-item">
+              <img src="assets/icons/tv.svg" class="nav-icon" alt=""> Shows
+            </a>
+          </div>
+        </li>
+        <li class="nav-item"><a href="dream-map.html" class="nav-link">Dreams</a></li>
+        <li class="nav-item"><a href="index.html#contact" class="nav-link">Contact</a></li>
+      </ul>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <section class="code-hero">
+    <div class="container">
+      <div class="code-hero-inner">
+        <span class="code-eyebrow">Things I've built</span>
+        <h1>Code &amp; Projects</h1>
+        <p>A collection of things I've coded — from small utilities to full applications. Mostly web, mostly self-taught, always a learning experience.</p>
+        <div class="code-stats">
+          <div class="code-stat">
+            <span class="code-stat-num" id="stat-total">—</span>
+            <span class="code-stat-label">Projects</span>
+          </div>
+          <div class="code-stat">
+            <span class="code-stat-num" id="stat-live">—</span>
+            <span class="code-stat-label">Live</span>
+          </div>
+          <div class="code-stat">
+            <span class="code-stat-num" id="stat-wip">—</span>
+            <span class="code-stat-label">In Progress</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Filter bar -->
+      <div class="filter-bar" id="filter-bar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="js">JavaScript</button>
+        <button class="filter-btn" data-filter="py">Python</button>
+        <button class="filter-btn" data-filter="react">React</button>
+        <button class="filter-btn" data-filter="html">HTML / CSS</button>
+      </div>
+
+      <!-- Grid -->
+      <div class="projects-grid" id="projects-grid">
+        <div class="loading" id="projects-loading">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span class="footer-logo">LINESBYLIN</span>
+      <div class="footer-links">
+        <a href="blog.html">Blog</a>
+        <a href="poems.html">Poems</a>
+        <a href="stories.html">Stories</a>
+        <a href="code.html">Code</a>
+        <a href="mediahub.html">MediaHub</a>
+      </div>
+      <p style="color:var(--soft-blue);font-size:var(--text-sm);margin:0;">Handcrafted with care</p>
+    </div>
+  </footer>
+
+  <div class="progress-wrap" id="progressWrap">
+    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
+    </svg>
+    <span class="progress-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+      </svg>
+    </span>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+
+      // ── Load projects from Firebase ───────────────────────────────────────────
+      let allProjects = [];
+
+      try {
+        const items = await getMediaHubByCategory('code');
+        allProjects = items || [];
+      } catch (e) {
+        console.error('Failed to load code projects:', e);
+      }
+
+      renderProjects(allProjects);
+      updateStats(allProjects);
+
+      // ── Filter ────────────────────────────────────────────────────────────────
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const filter = btn.dataset.filter;
+          const filtered = filter === 'all'
+            ? allProjects
+            : allProjects.filter(p => {
+                const tags = (p.tags || '').toLowerCase();
+                return tags.includes(filter);
+              });
+          renderProjects(filtered);
+        });
+      });
+    });
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+    function updateStats(projects) {
+      document.getElementById('stat-total').textContent = projects.length || '0';
+      document.getElementById('stat-live').textContent  = projects.filter(p => p.status === 'live').length || '0';
+      document.getElementById('stat-wip').textContent   = projects.filter(p => p.status === 'wip').length || '0';
+    }
+
+    // ── Render grid ───────────────────────────────────────────────────────────
+    function renderProjects(projects) {
+      const grid = document.getElementById('projects-grid');
+      grid.innerHTML = '';
+
+      if (!projects || projects.length === 0) {
+        grid.innerHTML = '<p class="projects-empty">No projects yet.</p>';
+        return;
+      }
+
+      projects.forEach(p => {
+        const banner   = p.banner  || 'banner-green';
+        const status   = p.status  || 'live';
+        const statusLabel = { live: 'Live', wip: 'In Progress', archived: 'Archived' }[status] || status;
+        const statusClass = { live: 'status-live', wip: 'status-wip', archived: 'status-archived' }[status] || 'status-live';
+
+        const tags = (p.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+        const tagHTML = tags.map(t => {
+          const cls = tagClass(t);
+          return `<span class="project-tag ${cls}">${t}</span>`;
+        }).join('');
+
+        const bannerContent = p.imageURL
+          ? `<img src="${p.imageURL}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
+          : `<span class="project-banner-icon">&#x2736;</span>`;
+
+        const githubBtn = p.githubURL
+          ? `<a href="${p.githubURL}" class="project-link" target="_blank" rel="noopener">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.09.682-.22.682-.485 0-.236-.009-.86-.013-1.687-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531.973 1.531.973.892 1.529 2.341 1.088 2.91.833.091-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+               GitHub
+             </a>` : '';
+
+        const liveBtn = p.liveURL
+          ? `<a href="${p.liveURL}" class="project-link project-link-live" target="_blank" rel="noopener">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+               Live Site
+             </a>` : '';
+
+        const linksHTML = (githubBtn || liveBtn)
+          ? `<div class="project-links">${githubBtn}${liveBtn}</div>` : '';
+
+        const descHTML = p.description
+          ? `<p class="project-desc">${p.description}</p>` : '';
+
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.dataset.tags = tags.map(t => t.toLowerCase().replace(/[^a-z0-9]/g,'')).join(' ');
+        card.innerHTML = `
+          <div class="project-banner ${banner}" style="position:relative;">
+            ${bannerContent}
+            <span class="project-status ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="project-body">
+            <div class="project-title">${p.title || 'Untitled'}</div>
+            ${descHTML}
+            ${tags.length ? `<div class="project-tags">${tagHTML}</div>` : ''}
+            ${linksHTML}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // ── Tag → CSS class ───────────────────────────────────────────────────────
+    function tagClass(tag) {
+      const t = tag.toLowerCase();
+      if (t.includes('javascript') || t === 'js') return 'tag-js';
+      if (t.includes('typescript') || t === 'ts') return 'tag-ts';
+      if (t.includes('python'))    return 'tag-py';
+      if (t.includes('html'))      return 'tag-html';
+      if (t.includes('react'))     return 'tag-react';
+      if (t.includes('firebase'))  return 'tag-firebase';
+      if (t.includes('css'))       return 'tag-css';
+      return '';
+    }
+  </script>
+</body>
+</html>

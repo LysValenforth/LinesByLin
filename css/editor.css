@@ -468,6 +468,66 @@
 .upload-icon { font-size: 2rem; margin-bottom: var(--space-xs); color: var(--forest-green); }
 .upload-text { font-size: var(--text-sm); color: var(--text-secondary); }
 
+
+/* ── Sidebar Tabs ─────────────────────────────── */
+.sidebar-tabs {
+  display: flex;
+  border-bottom: var(--border-width) solid var(--warm-beige);
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.sidebar-tab {
+  flex: 1;
+  padding: 10px var(--space-xs);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.sidebar-tab:hover { color: var(--forest-green); background-color: var(--warm-beige); }
+.sidebar-tab.active {
+  color: var(--forest-green);
+  border-bottom-color: var(--forest-green);
+  background-color: var(--soft-blue);
+}
+
+/* ── Word Count ───────────────────────────────── */
+.word-count-display {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.55;
+  white-space: nowrap;
+  width: 120px;
+  flex-shrink: 0;
+  text-align: right;
+  align-self: center;
+  padding-right: var(--space-xs);
+  visibility: hidden;
+  pointer-events: none;
+}
+.word-count-display:not(:empty) {
+  visibility: visible;
+}
+
+
+/* Status indicator text transition */
+.editor-save-status {
+  transition: opacity var(--transition-fast);
+}
+
+.status-indicator {
+  transition: background-color var(--transition-normal);
+}
+
 /* ── Scrollbar ────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -553,4 +613,290 @@
   gap: 4px;
   font-family: var(--font-body);
   font-weight: var(--font-semibold);
+}
+
+/* ── Docs-style Toolbar Extensions ───────────────── */
+
+/* Make the toolbar scrollable on narrow screens */
+.editor-toolbar-top {
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 6px var(--space-sm);
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.formatting-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  flex: 1;
+  min-width: 0;
+  border-left: none;
+  border-right: none;
+  padding: 0;
+}
+
+/* Separator between groups */
+.toolbar-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--warm-beige);
+  margin: 0 5px;
+  flex-shrink: 0;
+}
+
+/* Font family dropdown */
+.toolbar-select {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: var(--border-width) solid var(--warm-beige);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  cursor: pointer;
+  outline: none;
+  height: 32px;
+  transition: border-color var(--transition-fast);
+}
+.toolbar-select:focus,
+.toolbar-select:hover { border-color: var(--forest-green); }
+
+.toolbar-font-sel  { width: 130px; }
+.toolbar-block-sel { width: 100px; }
+
+/* Font size group */
+.toolbar-size-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.toolbar-size-input {
+  width: 38px;
+  height: 32px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: var(--border-width) solid var(--warm-beige);
+  border-radius: var(--radius-sm);
+  outline: none;
+  padding: 0 4px;
+  -moz-appearance: textfield;
+}
+.toolbar-size-input::-webkit-inner-spin-button,
+.toolbar-size-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.toolbar-size-input:focus { border-color: var(--forest-green); }
+
+/* Text color / highlight buttons */
+.toolbar-color-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 32px;
+  padding: 3px 7px;
+}
+
+.color-letter {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: var(--font-bold);
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.color-swatch {
+  display: block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* Format-btn sizing — uniform */
+.format-btn {
+  width: auto;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+.format-btn svg { vertical-align: middle; }
+
+/* ── Editor Mode Message ──────────────────────────── */
+.editor-mode-msg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  color: var(--text-secondary);
+  text-align: center;
+  background: var(--bg-primary);
+}
+
+.mode-msg-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.35;
+  margin-bottom: var(--space-xs);
+}
+
+.mode-msg-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+  font-weight: var(--font-bold);
+}
+
+.mode-msg-sub {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  max-width: 340px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ── editor-main must be a flex column so mode msg can flex:1 ── */
+.editor-main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar button variants ──────────────────── */
+/* Align L/C/R/J — bold small caps feel */
+.format-btn.tb-align {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  min-width: 26px;
+  font-style: normal;
+}
+
+/* List buttons — monospace feel */
+.format-btn.tb-list {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  min-width: 28px;
+  font-family: var(--font-body);
+}
+
+/* Indent buttons — arrow chars, same size */
+.format-btn.tb-indent {
+  font-size: 14px;
+  min-width: 26px;
+}
+
+/* Clear (×) — slightly larger */
+.format-btn.tb-clear {
+  font-size: 16px;
+  font-weight: 400;
+  min-width: 26px;
+}
+
+/* ── Duplicate section button ─────────────────── */
+.section-btn-dupe {
+  background-color: var(--soft-blue);
+  color: var(--dark-moss);
+  font-size: 0.85rem;
+}
+
+/* ── Toolbar dims when no section focused ─────── */
+.editor-toolbar-top {
+  transition: opacity 0.2s ease;
+}
+.editor-toolbar-top:not(.toolbar-active) {
+  opacity: 0.45;
+  pointer-events: none;
+}
+/* Always interactive when hovering */
+.editor-toolbar-top:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Published toggle switch ──────────────────── */
+.field-published-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--warm-beige);
+  border-radius: var(--radius-md);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.toggle-switch input { display: none; }
+
+.toggle-track {
+  width: 36px;
+  height: 20px;
+  background: var(--warm-beige);
+  border-radius: 20px;
+  border: var(--border-width) solid var(--soft-blue);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  position: relative;
+  display: block;
+}
+.toggle-switch input:checked + .toggle-track {
+  background: var(--forest-green);
+  border-color: var(--forest-green);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(16px);
+}
+
+/* ── Field hint text ──────────────────────────── */
+.field-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin: 4px 0 var(--space-xs);
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+/* ── Draft badge in sidebar ───────────────────── */
+.post-list-draft {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cream);
+  background: var(--alert-red);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  vertical-align: middle;
+  margin-left: 4px;
+  opacity: 0.85;
 }

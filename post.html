@@ -71,24 +71,80 @@
       color: var(--text-primary);
     }
 
+    /* ── Poem layout ──────────────────────────────────── */
     .post-body.poem-style {
       font-family: var(--font-heading);
       font-style: italic;
       text-align: center;
+      max-width: 520px;       /* narrower column — poems breathe better */
+      margin: 0 auto;
     }
 
+    /* Opening ornament before first stanza */
+    .post-body.poem-style .poem-stanza:first-child::before {
+      content: '✦';
+      display: block;
+      font-style: normal;
+      font-size: 1rem;
+      color: var(--soft-blue);
+      margin-bottom: var(--space-md);
+      letter-spacing: 0.4em;
+      opacity: 0.7;
+    }
+
+    /* Stanza separator — visible gap with a faint dot between stanzas */
     .post-body.poem-style .poem-stanza {
-      margin-bottom: var(--space-lg);
+      margin-bottom: 0;
+      padding-bottom: var(--space-lg);
+      position: relative;
     }
 
+    .post-body.poem-style .poem-stanza:not(:last-child)::after {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 24px;
+      margin: 0 auto;
+      background: radial-gradient(circle, var(--soft-blue) 30%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.5;
+      position: absolute;
+      bottom: calc(var(--space-md) * -0.5);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* Lines within a stanza — tighter than the gap between stanzas */
     .post-body.poem-style .poem-stanza p {
       margin: 0;
-      line-height: 1.9;
+      line-height: 2.05;
+      font-size: var(--text-lg);
     }
 
     .post-body.poem-style .poem-stanza p:empty {
-      height: 0.8em;
+      height: 0.6em;
       display: block;
+    }
+
+    /* Closing ornament after last stanza */
+    .post-body.poem-style .poem-stanza:last-child {
+      padding-bottom: var(--space-md);
+    }
+    .post-body.poem-style .poem-stanza:last-child::after {
+      content: '✦';
+      display: block;
+      font-style: normal;
+      font-size: 1rem;
+      color: var(--soft-blue);
+      margin-top: var(--space-md);
+      letter-spacing: 0.4em;
+      opacity: 0.7;
+      background: none;
+      width: auto;
+      height: auto;
+      position: static;
+      transform: none;
+      border-radius: 0;
     }
 
     .post-body p { margin-bottom: var(--space-md); }
@@ -142,6 +198,65 @@
       font-family: var(--font-heading);
       font-size: var(--text-2xl);
     }
+
+    /* ── Prev / Next navigation ─────────────────────────── */
+    /* ── Prev / Next navigation ─────────────────────────── */
+    .post-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: var(--border-width) solid var(--warm-beige);
+    }
+
+    .post-nav-btn {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      padding: var(--space-sm) var(--space-md);
+      border: var(--border-width) solid var(--warm-beige);
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-soft);
+    }
+    .post-nav-btn:hover {
+      background: var(--warm-beige);
+      border-color: var(--soft-blue);
+      box-shadow: var(--shadow-medium);
+      color: var(--text-primary);
+      transform: translateY(-2px);
+    }
+    .post-nav-prev { align-items: flex-start; }
+    .post-nav-next { align-items: flex-end; }
+
+    .post-nav-label {
+      font-size: var(--text-xs);
+      font-weight: var(--font-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--forest-green);
+      opacity: 0.8;
+    }
+    .post-nav-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      line-height: 1.3;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+    .post-nav-empty {
+      /* invisible placeholder to keep next btn right-aligned when prev is missing */
+    }
+
+    @media (max-width: 600px) {
+      .post-nav { grid-template-columns: 1fr; }
+      .post-nav-next { align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
@@ -152,10 +267,10 @@
         <img src="assets/icons/logo.svg" class="nav-icon" alt="" style="width: 50px; height: 50px;"> LINESBYLIN
       </a>
       <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-        <li class="nav-item"><a href="index.html#about" class="nav-link">About</a></li>
+        <li class="nav-item"><a href="index.html" class="nav-link active">Home</a></li>
+        <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
         <li class="nav-item dropdown">
-          <a href="#" class="nav-link dropdown-toggle active">
+          <a href="#" class="nav-link dropdown-toggle">
             <img src="assets/icons/work.svg" class="nav-icon" alt=""> Work
           </a>
           <div class="dropdown-menu">
@@ -167,6 +282,12 @@
             </a>
             <a href="stories.html" class="dropdown-item">
               <img src="assets/icons/story.svg" class="nav-icon" alt=""> Stories
+            </a>
+            <a href="biography.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Biography
+            </a>
+            <a href="code.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code
             </a>
           </div>
         </li>
@@ -187,7 +308,7 @@
           </div>
         </li>
         <li class="nav-item"><a href="dream-map.html" class="nav-link">Dreams</a></li>
-        <li class="nav-item"><a href="index.html#contact" class="nav-link">Contact</a></li>
+        <li class="nav-item"><a href="#contact" class="nav-link">Contact</a></li>
       </ul>
       <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -268,7 +389,7 @@
         const bodyHTML = sections.map(sec => renderSection(sec, isPoem)).join('');
 
         container.innerHTML = `
-          <a href="${backPage}" class="back-link">← Back to ${backLabel}s</a>
+          <a href="${backPage}" class="back-link">Back to ${backLabel}s</a>
           ${post.imageURL ? `<img class="post-hero" src="${post.imageURL}" alt="${post.title}">` : ''}
           <div class="post-meta">
             <span class="post-category-badge">${icon} ${catNames[post.category] || post.category}</span>
@@ -281,10 +402,53 @@
           </div>
         `;
 
+        // Load prev/next after rendering
+        loadAdjacentPosts(post);
+
       } catch (e) {
-        container.innerHTML = `<a href="index.html" class="back-link">← Home</a><p class="post-not-found">Post not found.</p>`;
+        container.innerHTML = `<a href="index.html" class="back-link">Home</a><p class="post-not-found">Post not found.</p>`;
       }
     }
+
+    async function loadAdjacentPosts(post) {
+      if (typeof getPostsByCategory !== 'function') return;
+      try {
+        const allPosts = await getPostsByCategory(post.category);
+        allPosts.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        const idx  = allPosts.findIndex(p => p.id === post.id);
+        const prev = idx < allPosts.length - 1 ? allPosts[idx + 1] : null; // older
+        const next = idx > 0 ? allPosts[idx - 1] : null;                   // newer
+
+        if (!prev && !next) return;
+
+        const nav = document.createElement('nav');
+        nav.className = 'post-nav';
+        nav.setAttribute('aria-label', 'Post navigation');
+
+        if (prev) {
+          nav.innerHTML += `
+            <a href="post.html?id=${prev.id}" class="post-nav-btn post-nav-prev">
+              <span class="post-nav-label">Previous</span>
+              <span class="post-nav-title">${prev.title}</span>
+            </a>`;
+        } else {
+          nav.innerHTML += '<div class="post-nav-empty"></div>';
+        }
+
+        if (next) {
+          nav.innerHTML += `
+            <a href="post.html?id=${next.id}" class="post-nav-btn post-nav-next">
+              <span class="post-nav-label">Next</span>
+              <span class="post-nav-title">${next.title}</span>
+            </a>`;
+        } else {
+          nav.innerHTML += '<div class="post-nav-empty"></div>';
+        }
+
+        document.querySelector('.post-wrapper').appendChild(nav);
+      } catch(e) { /* silent */ }
+    }
+
 
     function renderSection(sec, isPoem) {
       switch (sec.type) {

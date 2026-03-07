@@ -30,6 +30,12 @@
             <a href="stories.html" class="dropdown-item">
               <img src="assets/icons/story.svg" class="nav-icon" alt=""> Stories
             </a>
+            <a href="biography.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Biography
+            </a>
+            <a href="code.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code
+            </a>
           </div>
         </li>
         <li class="nav-item dropdown">
@@ -79,7 +85,7 @@
       <div class="about-content">
 
         <div class="about-art">
-          <img src="assets/images/art1.png" style="width:420px;height:600px;cursor:zoom-in;" alt="About Art" onclick="document.getElementById('about-art-lb').style.display='flex'">
+          <img src="assets/images/art1.png" style="width:100%;max-width:420px;height:auto;aspect-ratio:7/10;object-fit:cover;cursor:zoom-in;border-radius:var(--radius-lg);" alt="About Art" onclick="document.getElementById('about-art-lb').style.display='flex'">
         </div>
 
         <!-- Fullsize lightbox -->
@@ -148,6 +154,114 @@
   </section>
 
   <!-- Gallery Section -->
+  <section class="section" id="code-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Code &amp; Projects</h2>
+        <p class="section-subtitle">Things I've built — from small tools to full sites.</p>
+      </div>
+
+      <div class="code-preview-grid" id="code-preview-grid">
+        <!-- Populated by Firebase -->
+      </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="js/firebase.js"></script>
+      <script>
+        (async () => {
+          const grid = document.getElementById('code-preview-grid');
+
+          // CTA card — always rendered last, matches project card style
+          const CTA_HTML = `
+            <a href="code.html" class="code-preview-card" style="justify-content:center;align-items:center;min-height:200px;border-style:dashed;">
+              <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--space-lg);gap:var(--space-sm);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--forest-green);opacity:0.5;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <div style="font-family:var(--font-heading);font-size:var(--text-xl);color:var(--text-primary);">View all projects</div>
+                <div style="font-family:var(--font-body);font-size:var(--text-sm);color:var(--text-secondary);">GitHub repos, tools &amp; experiments</div>
+              </div>
+            </a>`;
+
+          function bannerCSS(banner) {
+            const map = {
+              'banner-green': 'background:linear-gradient(135deg,#2F5D50 0%,#4a8a78 100%)',
+              'banner-blue':  'background:linear-gradient(135deg,#A7C4BC 0%,#7aa9a0 100%)',
+              'banner-moss':  'background:linear-gradient(135deg,#1E3D36 0%,#2F5D50 100%)',
+              'banner-beige': 'background:linear-gradient(135deg,#E8DCC8 0%,#d4c4a8 100%)',
+              'banner-teal':  'background:linear-gradient(135deg,#4a8a78 0%,#A7C4BC 100%)',
+              'banner-dark':  'background:linear-gradient(135deg,#1E3D36 0%,#0d1f1b 100%)'
+            };
+            return map[banner] || map['banner-green'];
+          }
+
+          function renderCard(p) {
+            const status      = p.status || 'live';
+            const statusLabel = { live:'Live', wip:'In Progress', archived:'Archived' }[status] || status;
+            const badgeStyle  = status === 'live'
+              ? 'background:var(--soft-blue);color:var(--dark-moss);'
+              : status === 'wip'
+              ? 'background:#f5c97a;color:#6b3f00;'
+              : 'background:rgba(0,0,0,0.18);color:#ccc;';
+
+            const tags = (p.tags || '').split(',').map(t => t.trim()).filter(Boolean).slice(0, 4);
+            const tagsHTML = tags.map(t => `<span class="code-mini-tag">${t}</span>`).join('');
+
+            const desc = p.description
+              ? `<p class="code-card-desc">${p.description.slice(0, 120)}${p.description.length > 120 ? '…' : ''}</p>` : '';
+
+            // If there's an image show it fully; otherwise show a gradient banner
+            const imageBlock = p.imageURL
+              ? `<img src="${p.imageURL}" alt="${p.title}" style="width:100%;height:auto;display:block;max-height:280px;object-fit:cover;">`
+              : `<div class="code-card-banner" style="${bannerCSS(p.banner)};position:relative;">
+                   <span class="code-card-icon" style="z-index:1;">&#x2736;</span>
+                 </div>`;
+
+            return `
+              <a href="code.html" class="code-preview-card">
+                <div style="position:relative;">
+                  ${imageBlock}
+                  <span class="code-card-badge" style="position:absolute;top:10px;right:10px;${badgeStyle}">${statusLabel}</span>
+                </div>
+                <div class="code-card-body">
+                  <div class="code-card-title">${p.title || 'Untitled'}</div>
+                  ${desc}
+                  ${tags.length ? `<div class="code-card-tags">${tagsHTML}</div>` : ''}
+                </div>
+              </a>`;
+          }
+
+          try {
+            // Wait for Firebase/getMediaHubByCategory to be available
+            let attempts = 0;
+            while (typeof getMediaHubByCategory === 'undefined' && attempts < 20) {
+              await new Promise(r => setTimeout(r, 100));
+              attempts++;
+            }
+
+            const items = await getMediaHubByCategory('code');
+            const projects = (items || [])
+              .filter(p => p.published !== false)
+              .slice(0, 3); // show up to 3 on index
+
+            if (projects.length === 0) {
+              // No projects yet — hide the whole section
+              const section = document.getElementById('code-section');
+              if (section) section.style.display = 'none';
+            } else {
+              grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+              grid.innerHTML = projects.map(renderCard).join('') + CTA_HTML;
+            }
+          } catch (e) {
+            console.warn('Code projects failed to load:', e);
+            const section = document.getElementById('code-section');
+            if (section) section.style.display = 'none';
+          }
+        })();
+      </script>
+    </div>
+  </section>
+
   <section class="section" id="gallery">
     <div class="container">
       <div class="section-header">
@@ -174,12 +288,12 @@
   <div id="gl-lb-backdrop"></div>
   <div id="gl-lightbox">
     <button id="gl-lb-close">&#x2715;</button>
-    <button id="gl-lb-prev">&#8592;</button>
+    <button id="gl-lb-prev">Prev</button>
     <div id="gl-lb-content">
       <div id="gl-lb-img-wrap"></div>
       <p id="gl-lb-caption"></p>
     </div>
-    <button id="gl-lb-next">&#8594;</button>
+    <button id="gl-lb-next">Next</button>
   </div>
 
   <style>
@@ -414,7 +528,7 @@
       card.innerHTML =
         '<div class="cgl-img">' +
           '<div class="cgl-img-ph">' + imgInner + '</div>' +
-          '<div class="cgl-img-overlay"><span class="cgl-view-btn">View Collection →</span></div>' +
+          '<div class="cgl-img-overlay"><span class="cgl-view-btn">View Collection</span></div>' +
         '</div>' +
         '<div class="cgl-body">' +
           '<span class="cgl-cat">Photo Collection</span>' +
@@ -463,6 +577,9 @@
 
     // ── Load all collections from Firebase and render cards ───────────────────
     try {
+      if (typeof firebase === 'undefined' || typeof firebase.firestore !== 'function') {
+        console.warn('Firebase not ready for gallery'); return;
+      }
       var db = firebase.firestore();
       db.collection("gallery").get().then(function (snap) {
         if (snap.empty) return;
@@ -536,6 +653,127 @@
   });
   </script>
 
+
+  <!-- Code & Projects Section -->
+
+
+  <style>
+    .code-preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+    /* mobile handled by style.css */
+
+    .code-preview-card {
+      border-radius: var(--radius-lg);
+      border: var(--border-width) solid var(--warm-beige);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      transition: all var(--transition-normal);
+      box-shadow: var(--shadow-soft);
+      background: var(--bg-surface);
+    }
+    .code-preview-card:hover {
+      box-shadow: var(--shadow-floating);
+      transform: translateY(-4px);
+      border-color: var(--soft-blue);
+    }
+
+    .code-card-banner {
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .code-card-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+    .banner-green-preview { background: linear-gradient(135deg, #2F5D50 0%, #4a8a78 100%); }
+    .code-card-icon { font-size: 2.2rem; z-index: 1; }
+
+    .code-card-body {
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      flex: 1;
+    }
+    .code-card-badge {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: var(--font-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      width: fit-content;
+    }
+    .status-live-badge { background: var(--soft-blue); color: var(--dark-moss); }
+
+    .code-card-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-xl);
+      color: var(--text-primary);
+    }
+    .code-card-desc {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .code-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+    .code-mini-tag {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: var(--font-semibold);
+      padding: 2px 8px;
+      background: var(--warm-beige);
+      color: var(--dark-moss);
+      border-radius: var(--radius-sm);
+    }
+
+    /* CTA card — inherits .code-preview-card, dashed border */
+    .code-card-cta {
+      border-style: dashed;
+      min-height: 200px;
+      justify-content: center;
+      align-items: center;
+    }
+    .code-cta-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: var(--space-lg);
+    }
+    .code-cta-text {
+      font-family: var(--font-heading);
+      font-size: var(--text-xl);
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .code-cta-sub {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      opacity: 0.85;
+    }
+  </style>
+
   <section class="section section-alt" id="contact">
     <div class="container">
       <div style="text-align:center; margin-bottom: var(--space-lg);">
@@ -584,7 +822,7 @@
               </div>
               <div class="detail-content">
                 <h4>Email</h4>
-                <a href="mailto:lixverino@gmail.com">lixverino@gmail.com</a>
+                <a href="/cdn-cgi/l/email-protection#731f1a0b0516011a1d1c33141e121a1f5d101c1e"><span class="__cf_email__" data-cfemail="197570616f7c6b707776597e74787075377a7674">[email&#160;protected]</span></a>
               </div>
             </div>
             <div class="contact-detail-item">
@@ -631,6 +869,7 @@
         <a href="blog.html">Blog</a>
         <a href="poems.html">Poems</a>
         <a href="stories.html">Stories</a>
+        <a href="code.html">Code</a>
         <a href="mediahub.html">MediaHub</a>
       </div>
       <p style="color:var(--soft-blue); font-size:var(--text-sm); margin:0;">Handcrafted with care</p>
@@ -649,11 +888,7 @@
     </span>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script src="js/mediahub.js"></script>
+    <script src="js/mediahub.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

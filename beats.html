@@ -15,16 +15,28 @@
         <img src="assets/icons/logo.svg" class="nav-icon" alt="" style="width: 50px; height: 50px;"> LINESBYLIN
       </a>
       <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-        <li class="nav-item"><a href="index.html#about" class="nav-link">About</a></li>
+        <li class="nav-item"><a href="index.html" class="nav-link active">Home</a></li>
+        <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
         <li class="nav-item dropdown">
           <a href="#" class="nav-link dropdown-toggle">
             <img src="assets/icons/work.svg" class="nav-icon" alt=""> Work
           </a>
           <div class="dropdown-menu">
-            <a href="blog.html" class="dropdown-item"><img src="assets/icons/blog.svg" class="nav-icon" alt=""> Blog</a>
-            <a href="poems.html" class="dropdown-item"><img src="assets/icons/poem.svg" class="nav-icon" alt=""> Poems</a>
-            <a href="stories.html" class="dropdown-item"><img src="assets/icons/story.svg" class="nav-icon" alt=""> Stories</a>
+            <a href="blog.html" class="dropdown-item">
+              <img src="assets/icons/blog.svg" class="nav-icon" alt=""> Blog
+            </a>
+            <a href="poems.html" class="dropdown-item">
+              <img src="assets/icons/poem.svg" class="nav-icon" alt=""> Poems
+            </a>
+            <a href="stories.html" class="dropdown-item">
+              <img src="assets/icons/story.svg" class="nav-icon" alt=""> Stories
+            </a>
+            <a href="biography.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Biography
+            </a>
+            <a href="code.html" class="dropdown-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code
+            </a>
           </div>
         </li>
         <li class="nav-item dropdown">
@@ -32,13 +44,19 @@
             <img src="assets/icons/media.svg" class="nav-icon" alt=""> MediaHub
           </a>
           <div class="dropdown-menu">
-            <a href="beats.html" class="dropdown-item"><img src="assets/icons/music.svg" class="nav-icon" alt=""> Beats</a>
-            <a href="movies.html" class="dropdown-item"><img src="assets/icons/movie.svg" class="nav-icon" alt=""> Movies</a>
-            <a href="tvshows.html" class="dropdown-item"><img src="assets/icons/tv.svg" class="nav-icon" alt=""> Shows</a>
+            <a href="beats.html" class="dropdown-item">
+              <img src="assets/icons/music.svg" class="nav-icon" alt=""> Beats
+            </a>
+            <a href="movies.html" class="dropdown-item">
+              <img src="assets/icons/movie.svg" class="nav-icon" alt=""> Movies
+            </a>
+            <a href="tvshows.html" class="dropdown-item">
+              <img src="assets/icons/tv.svg" class="nav-icon" alt=""> Shows
+            </a>
           </div>
         </li>
         <li class="nav-item"><a href="dream-map.html" class="nav-link">Dreams</a></li>
-        <li class="nav-item"><a href="index.html#contact" class="nav-link">Contact</a></li>
+        <li class="nav-item"><a href="#contact" class="nav-link">Contact</a></li>
       </ul>
       <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -359,7 +377,7 @@
                 className={'pagination-btn' + (page === 1 ? ' disabled' : '')}
                 disabled={page === 1}
                 onClick={() => goTo(page - 1)}
-              >← Prev</button>
+              >Prev</button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
                 <button
@@ -373,7 +391,7 @@
                 className={'pagination-btn' + (page === totalPages ? ' disabled' : '')}
                 disabled={page === totalPages}
                 onClick={() => goTo(page + 1)}
-              >Next →</button>
+              >Next</button>
 
               <span className="pagination-info">Page {page} of {totalPages}</span>
             </div>

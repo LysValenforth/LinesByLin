@@ -1277,6 +1277,12 @@ body {
   to   { opacity: 1; }
 }
 
+/* Page exit (triggered by JS before navigation) */
+body.page-exit {
+  opacity: 0;
+  transition: opacity 0.28s ease-in;
+}
+
 #contact {
   margin-bottom: 0;
   padding-bottom: var(--space-xl);
@@ -1305,6 +1311,40 @@ main, .section {
 .footer {
   margin-top: 0;
 }
+/* ── Sort Controls ────────────────────────────────── */
+.sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.sort-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+}
+
+.sort-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--forest-green);
+  background: var(--bg-surface);
+  border: var(--border-width) solid var(--warm-beige);
+  border-radius: var(--radius-full);
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.sort-btn:hover { background: var(--warm-beige); }
+.sort-btn.active {
+  background: var(--forest-green);
+  color: var(--cream);
+  border-color: var(--forest-green);
+}
+
 /* ── Pagination ────────────────────────────────── */
 .pagination {
   display: flex;
@@ -1359,4 +1399,274 @@ main, .section {
   color: var(--text-muted, #888);
   margin-left: 0.5rem;
   align-self: center;
+}
+/* ══════════════════════════════════════════════════
+   MOBILE / RESPONSIVE — COMPREHENSIVE FIX
+   Covers: nav, hero, about, post, biography,
+   mediahub, code, gallery, footer, index sections
+   ══════════════════════════════════════════════════ */
+
+/* ── Baseline image safety ────────────────────── */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── About art: kill fixed px sizes on mobile ── */
+@media (max-width: 992px) {
+  .about-art {
+    position: static;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    order: -1; /* image above text on mobile */
+  }
+  .about-art img {
+    width: 100% !important;
+    max-width: 420px;
+    height: auto !important;
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+  }
+  .about-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+  .about-text-col {
+    align-items: center;
+  }
+  .about-quote { text-align: left; }
+}
+
+/* ── Nav: overflow & logo clamping ───────────── */
+@media (max-width: 768px) {
+  .nav-logo {
+    font-size: var(--text-lg);
+    gap: 4px;
+  }
+  .nav-logo img {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  /* Mobile nav full-screen scroll */
+  .nav-menu {
+    overflow-y: auto;
+    max-height: calc(100vh - var(--nav-height));
+  }
+  .nav-item {
+    width: 100%;
+  }
+  .nav-link {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .dropdown-menu {
+    width: 100%;
+    background: transparent;
+  }
+  .dropdown-item {
+    padding-left: var(--space-lg);
+  }
+}
+
+/* ── Hero ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero {
+    min-height: calc(70vh - var(--nav-height));
+    padding: var(--space-lg) 0;
+    text-align: center;
+  }
+  .hero-title { font-size: clamp(1.8rem, 7vw, 2.8rem); }
+  .hero-subtitle { font-size: var(--text-base); }
+  .hero-actions { justify-content: center; gap: var(--space-xs); }
+  .hero-bg { display: none; }
+}
+@media (max-width: 480px) {
+  .hero-actions { flex-direction: column; align-items: center; }
+  .hero-actions .btn { width: 100%; max-width: 280px; }
+}
+
+/* ── Section header text ──────────────────────── */
+@media (max-width: 768px) {
+  .section-title  { font-size: var(--text-3xl); }
+  .section-subtitle { font-size: var(--text-base); }
+}
+
+/* ── Featured / Posts grid ────────────────────── */
+@media (max-width: 640px) {
+  .featured-grid,
+  #posts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Card images ──────────────────────────────── */
+.card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+@media (max-width: 480px) {
+  .card-image { height: 160px; }
+}
+
+/* ── Post page ────────────────────────────────── */
+@media (max-width: 768px) {
+  .post-header { padding: var(--space-md) 0; }
+  .post-body,
+  .reading-content {
+    font-size: var(--text-base);
+    line-height: 1.85;
+  }
+  .post-nav {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-sm);
+  }
+  .post-nav-next { align-items: flex-start !important; }
+  .post-nav-btn { width: 100%; }
+}
+
+/* ── Biography page ───────────────────────────── */
+@media (max-width: 768px) {
+  /* Bio hero image */
+  .bio-hero-inner {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .bio-portrait {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  /* Chapter grid already switches to 1col but ensure image fills properly */
+  .chapter img {
+    width: 100% !important;
+    height: 200px !important;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+  }
+  /* Lightbox close button touch target */
+  #bio-lb button { width: 48px; height: 48px; font-size: 1.2rem; }
+}
+
+/* ── MediaHub category cards ──────────────────── */
+.mediahub-categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+@media (max-width: 768px) {
+  .mediahub-categories { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .mediahub-grid { grid-template-columns: 1fr; }
+  .media-card-poster { height: 180px; }
+}
+
+/* ── Beats card ───────────────────────────────── */
+@media (max-width: 600px) {
+  .beat-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .beat-card-art,
+  .beat-card-art-placeholder {
+    width: 100% !important;
+    height: 180px;
+    border-radius: var(--radius-lg);
+  }
+  .beat-card-title { white-space: normal; }
+}
+
+/* ── Code page ────────────────────────────────── */
+@media (max-width: 640px) {
+  .projects-grid { grid-template-columns: 1fr !important; }
+  .project-banner { height: 110px; }
+  .filter-bar { gap: 6px; }
+  .filter-btn { font-size: 11px; padding: 5px 12px; }
+  .code-hero h1 { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+  .code-stats { gap: var(--space-md); }
+}
+
+/* ── Index: Code preview grid ─────────────────── */
+@media (max-width: 600px) {
+  .code-preview-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .code-card-cta { min-height: 140px; }
+}
+
+/* ── Gallery section ──────────────────────────── */
+@media (max-width: 560px) {
+  #gl-modal-inner { padding: var(--space-md); }
+  #gl-modal-title { font-size: var(--text-2xl); padding-right: var(--space-xl); }
+  #gl-thumb-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .cgl-img { height: 170px; }
+}
+
+/* ── Gallery lightbox ─────────────────────────── */
+@media (max-width: 600px) {
+  #gl-lightbox {
+    flex-direction: column;
+    padding: 50px 8px 12px;
+    gap: 8px;
+  }
+  #gl-lb-prev, #gl-lb-next {
+    width: 40px; height: 40px;
+    font-size: 1rem;
+  }
+  #gl-lb-img-wrap img { max-height: 55vh; }
+}
+
+/* ── Dream map ────────────────────────────────── */
+@media (max-width: 480px) {
+  .dream-coming-soon { padding: var(--space-lg) var(--space-md); }
+}
+
+/* ── Footer ───────────────────────────────────── */
+@media (max-width: 640px) {
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-sm);
+  }
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-sm);
+  }
+}
+
+/* ── Contact ──────────────────────────────────── */
+@media (max-width: 640px) {
+  .contact-container { grid-template-columns: 1fr; gap: var(--space-md); }
+  .contact-form-wrapper,
+  .contact-info-wrapper { padding: var(--space-md); }
+}
+
+/* ── Pagination ───────────────────────────────── */
+@media (max-width: 480px) {
+  .pagination { gap: 4px; }
+  .pagination-btn { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+  .pagination-info { display: none; }
+}
+
+/* ── Progress / Back to top ───────────────────── */
+@media (max-width: 480px) {
+  .progress-wrap { right: 16px; bottom: 16px; width: 44px; height: 44px; }
+}
+
+/* ── Toast ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .toast { white-space: normal; text-align: center; max-width: calc(100vw - 40px); }
+}
+
+/* ── Touch targets: all interactive elements ──── */
+@media (max-width: 768px) {
+  .btn { min-height: 44px; }
+  .nav-toggle { width: 44px; height: 44px; justify-content: center; }
+  .sort-btn, .filter-btn, .pagination-btn { min-height: 36px; }
 }
