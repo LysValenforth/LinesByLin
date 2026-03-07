@@ -125,27 +125,6 @@ a:hover { color: var(--dark-moss); }
   flex-shrink: 0;
 }
 
-.dropdown:hover .dropdown-toggle::after { transform: rotate(225deg) translateY(2px); }
-
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  background: var(--bg-surface);
-  border: var(--border-width) solid var(--warm-beige);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-medium);
-  min-width: 160px;
-  padding: var(--space-xs);
-  opacity: 0;
-  visibility: hidden;
-  transition: all var(--transition-fast);
-  z-index: 200;
-}
-
-.dropdown:hover .dropdown-menu,
-.dropdown-menu.visible { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
 .dropdown-item {
   display: block;
@@ -155,6 +134,35 @@ a:hover { color: var(--dark-moss); }
   transition: background-color var(--transition-fast);
 }
 .dropdown-item:hover { background-color: var(--warm-beige); }
+
+/* ── Desktop-only dropdown (absolute popup on hover) ── */
+@media (min-width: 769px) {
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--bg-surface);
+    border: var(--border-width) solid var(--warm-beige);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-medium);
+    min-width: 160px;
+    padding: var(--space-xs);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
+    z-index: 200;
+  }
+  .dropdown:hover .dropdown-menu,
+  .dropdown-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  .dropdown:hover .dropdown-toggle::after {
+    transform: rotate(225deg) translateY(2px);
+  }
+}
 
 .nav-toggle {
   display: none;
@@ -836,28 +844,22 @@ a:hover { color: var(--dark-moss); }
     transform: rotate(225deg) translateY(2px);
   }
 
-  /* ── Dropdown menu: inline accordion, not absolute ── */
+  /* ── Dropdown menu: inline accordion ── */
   .dropdown-menu {
-    position: static !important;
     display: block;
     width: 100%;
-    background: var(--warm-beige);
+    background: rgba(0,0,0,0.04);
     border: none;
     border-radius: 0;
     box-shadow: none;
-    padding: var(--space-xs) 0;
-    opacity: 1;
-    visibility: visible;
-    transform: none !important;
-    /* collapsed by default */
+    /* collapsed */
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.28s ease, padding 0.28s ease;
+    padding: 0;
+    transition: max-height 0.3s ease;
   }
   .dropdown.open .dropdown-menu {
-    /* enough for up to 6 items at ~52px each */
-    max-height: 360px;
-    padding: var(--space-xs) 0;
+    max-height: 400px;
   }
 
   /* ── Dropdown items ── */
