@@ -125,6 +125,39 @@ document.addEventListener('DOMContentLoaded', () => {
   bindSlugAutoFill();
   bindTipsCollapse();
 
+  // ── Rating heart buttons ────────────────────────────────────────────────────
+  ['movies', 'tvshows'].forEach(cat => {
+    const row      = document.getElementById(`${cat}-rating-row`);
+    const hidden   = document.getElementById(`${cat}-rating`);
+    const clearBtn = document.getElementById(`${cat}-rating-clear`);
+    if (!row || !hidden) return;
+
+    function setRating(val) {
+      hidden.value = val;
+      row.querySelectorAll('.rating-star-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.val) <= parseInt(val));
+      });
+      markDirty();
+    }
+
+    row.querySelectorAll('.rating-star-btn').forEach(btn => {
+      btn.addEventListener('click', () => setRating(btn.dataset.val));
+      btn.addEventListener('mouseenter', () => {
+        row.querySelectorAll('.rating-star-btn').forEach(b => {
+          b.classList.toggle('hover', parseInt(b.dataset.val) <= parseInt(btn.dataset.val));
+        });
+      });
+      btn.addEventListener('mouseleave', () => {
+        row.querySelectorAll('.rating-star-btn').forEach(b => b.classList.remove('hover'));
+      });
+    });
+    clearBtn?.addEventListener('click', () => {
+      hidden.value = '';
+      row.querySelectorAll('.rating-star-btn').forEach(b => b.classList.remove('active','hover'));
+      markDirty();
+    });
+  });
+
   // Load item from URL params
   const params   = new URLSearchParams(window.location.search);
   const urlId    = params.get('id');
@@ -349,6 +382,16 @@ function showMediaHubFields(category) {
   }
 }
 
+function _loadRating(cat, val) {
+  const hidden = document.getElementById(`${cat}-rating`);
+  const row    = document.getElementById(`${cat}-rating-row`);
+  if (!hidden || !row) return;
+  hidden.value = val;
+  row.querySelectorAll('.rating-star-btn').forEach(btn => {
+    btn.classList.toggle('active', val && parseInt(btn.dataset.val) <= parseInt(val));
+  });
+}
+
 function fillMediaHubFields(category, item) {
   if (category === 'beats') {
     safeSet('beats-creator',     item.creator     || item.artistName || '');
@@ -366,6 +409,9 @@ function fillMediaHubFields(category, item) {
     safeSet('movies-stars',       item.stars       || '');
     safeSet('movies-info-link',   item.infoLink    || '');
     safeSet('movies-video-url',   item.videoURL    || '');
+    const mStatus = document.getElementById('movies-status');
+    if (mStatus) mStatus.value = item.status || '';
+    _loadRating('movies', item.rating || '');
   } else if (category === 'tvshows') {
     safeSet('tvshows-genre',       item.genre       || '');
     safeSet('tvshows-image-url',   item.imageURL    || '');
@@ -374,6 +420,9 @@ function fillMediaHubFields(category, item) {
     safeSet('tvshows-stars',       item.stars       || '');
     safeSet('tvshows-info-link',   item.infoLink    || '');
     safeSet('tvshows-video-url',   item.videoURL    || '');
+    const tStatus = document.getElementById('tvshows-status');
+    if (tStatus) tStatus.value = item.status || '';
+    _loadRating('tvshows', item.rating || '');
   } else if (category === 'code') {
     safeSet('code-description', item.description || '');
     safeSet('code-image-url',   item.imageURL    || '');
@@ -559,6 +608,8 @@ function gatherPostData() {
       stars:       document.getElementById('movies-stars').value.trim(),
       infoLink:    document.getElementById('movies-info-link').value.trim(),
       videoURL:    document.getElementById('movies-video-url').value.trim(),
+      status:      document.getElementById('movies-status').value,
+      rating:      document.getElementById('movies-rating').value,
       // Clear unused fields
       songLink: '', artistLink: ''
     };
@@ -574,6 +625,8 @@ function gatherPostData() {
       stars:       document.getElementById('tvshows-stars').value.trim(),
       infoLink:    document.getElementById('tvshows-info-link').value.trim(),
       videoURL:    document.getElementById('tvshows-video-url').value.trim(),
+      status:      document.getElementById('tvshows-status').value,
+      rating:      document.getElementById('tvshows-rating').value,
       // Clear unused fields
       songLink: '', artistLink: ''
     };

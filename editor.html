@@ -293,6 +293,25 @@
           <p style="font-size:var(--text-xs);color:var(--text-secondary);margin:0 0 var(--space-xs) 0;">Movie title will link here on the public page.</p>
           <label class="field-label">Trailer Embed URL</label>
           <input type="url" id="movies-video-url" class="field-input" placeholder="https://www.youtube.com/embed/...">
+
+          <label class="field-label" style="margin-top:var(--space-sm);">Watch Status</label>
+          <select id="movies-status" class="field-select">
+            <option value="">— Not set —</option>
+            <option value="watched">✓ Watched</option>
+            <option value="watching">▶ Watching</option>
+            <option value="want">♡ Want to Watch</option>
+          </select>
+
+          <label class="field-label" style="margin-top:var(--space-sm);">My Rating</label>
+          <div class="rating-input-row" id="movies-rating-row">
+            <button type="button" class="rating-star-btn" data-val="1">♥</button>
+            <button type="button" class="rating-star-btn" data-val="2">♥</button>
+            <button type="button" class="rating-star-btn" data-val="3">♥</button>
+            <button type="button" class="rating-star-btn" data-val="4">♥</button>
+            <button type="button" class="rating-star-btn" data-val="5">♥</button>
+            <button type="button" class="rating-clear-btn" id="movies-rating-clear">✕</button>
+          </div>
+          <input type="hidden" id="movies-rating" value="">
         </div>
 
         <!-- MediaHub: TV Shows fields -->
@@ -315,6 +334,25 @@
           <p style="font-size:var(--text-xs);color:var(--text-secondary);margin:0 0 var(--space-xs) 0;">Show title will link here on the public page.</p>
           <label class="field-label">Clip Embed URL</label>
           <input type="url" id="tvshows-video-url" class="field-input" placeholder="https://www.youtube.com/embed/...">
+
+          <label class="field-label" style="margin-top:var(--space-sm);">Watch Status</label>
+          <select id="tvshows-status" class="field-select">
+            <option value="">— Not set —</option>
+            <option value="watched">✓ Watched</option>
+            <option value="watching">▶ Watching</option>
+            <option value="want">♡ Want to Watch</option>
+          </select>
+
+          <label class="field-label" style="margin-top:var(--space-sm);">My Rating</label>
+          <div class="rating-input-row" id="tvshows-rating-row">
+            <button type="button" class="rating-star-btn" data-val="1">♥</button>
+            <button type="button" class="rating-star-btn" data-val="2">♥</button>
+            <button type="button" class="rating-star-btn" data-val="3">♥</button>
+            <button type="button" class="rating-star-btn" data-val="4">♥</button>
+            <button type="button" class="rating-star-btn" data-val="5">♥</button>
+            <button type="button" class="rating-clear-btn" id="tvshows-rating-clear">✕</button>
+          </div>
+          <input type="hidden" id="tvshows-rating" value="">
         </div>
 
 
