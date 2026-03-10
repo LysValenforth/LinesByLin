@@ -68,15 +68,18 @@ let isDirty           = false;
 let lastSavedAt       = null;
 let wordCountTimer    = null;
 
-const MEDIAHUB_CATS = ['beats', 'movies', 'tvshows', 'code'];
+const MEDIAHUB_CATS = ['beats', 'movies', 'tvshows'];
+const CODE_CAT      = 'code';
 
 // ── Per-category field panel IDs ─────────────────────────────────────────────
 const MEDIAHUB_PANELS = {
   beats:   'mediahub-beats-fields',
   movies:  'mediahub-movies-fields',
   tvshows: 'mediahub-tvshows-fields',
-  code:    'mediahub-code-fields'
+  code:    'mediahub-code-fields',
 };
+
+let currentCategoryFilter = null; // null = show all, 'code' = show only code
 
 // ── Code image preview ───────────────────────────────────────────────────────
 
@@ -250,8 +253,17 @@ function bindSidebarTabs() {
 
       showGalleryPanel(false);
       setActiveTab(which);
-      currentCollection = which === 'mediahub' ? 'mediahub' : 'posts';
-      setEditorMode(which === 'mediahub' ? 'mediahub' : 'writing');
+
+      if (which === 'code') {
+        currentCollection = 'mediahub';
+        currentCategoryFilter = 'code';
+        setEditorMode('code');
+      } else {
+        currentCategoryFilter = which === 'mediahub' ? 'mediahub-only' : null;
+        currentCollection = which === 'mediahub' ? 'mediahub' : 'posts';
+        setEditorMode(which === 'mediahub' ? 'mediahub' : 'writing');
+      }
+
       loadPostsList();
     });
   });
@@ -271,9 +283,16 @@ async function loadPostsList() {
   list.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
 
   try {
-    const items = currentCollection === 'mediahub'
+    let items = currentCollection === 'mediahub'
       ? await getAllMediaHub()
       : await getAllPosts();
+
+    // Filter by category if set
+    if (currentCategoryFilter === 'code') {
+      items = items.filter(i => i.category === 'code');
+    } else if (currentCategoryFilter === 'mediahub-only') {
+      items = items.filter(i => i.category !== 'code');
+    }
 
     const searchInput = document.getElementById('sidebar-search');
 
@@ -427,6 +446,7 @@ function fillMediaHubFields(category, item) {
     safeSet('movies-description', item.description || '');
     safeSet('movies-creator',     item.creator     || '');
     safeSet('movies-stars',       item.stars       || '');
+    safeSet('movies-notes',       item.notes       || '');
     safeSet('movies-info-link',   item.infoLink    || '');
     safeSet('movies-video-url',   item.videoURL    || '');
   } else if (category === 'tvshows') {
@@ -435,6 +455,7 @@ function fillMediaHubFields(category, item) {
     safeSet('tvshows-description', item.description || '');
     safeSet('tvshows-creator',     item.creator     || '');
     safeSet('tvshows-stars',       item.stars       || '');
+    safeSet('tvshows-notes',       item.notes       || '');
     safeSet('tvshows-info-link',   item.infoLink    || '');
     safeSet('tvshows-video-url',   item.videoURL    || '');
   } else if (category === 'code') {
@@ -486,9 +507,10 @@ async function createNewPost() {
     const isMedia = currentCollection === 'mediahub';
     let id;
     if (isMedia) {
+      const defaultCat = currentCategoryFilter === 'code' ? 'code' : 'beats';
       id = await createMediaHub({
-        title:    'Untitled Media',
-        category: 'beats',
+        title:    currentCategoryFilter === 'code' ? 'Untitled Project' : 'Untitled Media',
+        category: defaultCat,
         date:     new Date().toISOString()
       });
     } else {
@@ -620,6 +642,7 @@ function gatherPostData() {
       description: document.getElementById('movies-description').value.trim(),
       creator:     document.getElementById('movies-creator').value.trim(),
       stars:       document.getElementById('movies-stars').value.trim(),
+      notes:       document.getElementById('movies-notes').value.trim(),
       infoLink:    document.getElementById('movies-info-link').value.trim(),
       videoURL:    document.getElementById('movies-video-url').value.trim(),
       // Clear unused fields
@@ -635,6 +658,7 @@ function gatherPostData() {
       description: document.getElementById('tvshows-description').value.trim(),
       creator:     document.getElementById('tvshows-creator').value.trim(),
       stars:       document.getElementById('tvshows-stars').value.trim(),
+      notes:       document.getElementById('tvshows-notes').value.trim(),
       infoLink:    document.getElementById('tvshows-info-link').value.trim(),
       videoURL:    document.getElementById('tvshows-video-url').value.trim(),
       // Clear unused fields
@@ -1334,4 +1358,30 @@ async function saveGalleryMeta() {
     console.error('saveGalleryMeta error:', err);
     showToast('Failed to save info.', 'error');
   }
+}
+// ── Media Poster Drag/Drop Upload ────────────────────────────────────────────
+async function handleMediaFile(file, cat) {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Please upload an image file.', 'warn'); return;
+  }
+  const dropArea = document.getElementById(`${cat}-drop-area`);
+  if (dropArea) dropArea.textContent = 'Uploading…';
+  showToast('Uploading poster...', 'info');
+  try {
+    const url = await uploadImage(file, () => {});
+    safeSet(`${cat}-image-url`, url);
+    if (dropArea) dropArea.innerHTML = `<div style="color:var(--forest-green);font-size:var(--text-sm);font-weight:600;">✓ Uploaded — URL filled below</div>`;
+    showToast('Poster uploaded!', 'success');
+  } catch (err) {
+    if (dropArea) dropArea.innerHTML = `<div style="color:var(--alert-red);font-size:var(--text-sm);">Upload failed</div>`;
+    showToast('Upload failed: ' + err.message, 'error');
+  }
+}
+
+function handleMediaDrop(event, cat) {
+  event.preventDefault();
+  const dropArea = document.getElementById(`${cat}-drop-area`);
+  if (dropArea) dropArea.style.borderColor = 'var(--warm-beige)';
+  const file = event.dataTransfer.files[0];
+  if (file) handleMediaFile(file, cat);
 }

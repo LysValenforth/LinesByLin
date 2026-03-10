@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editor</title>
-  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/editor.css">
 </head>
@@ -120,10 +119,11 @@
         </h2>
       </div>
 
-      <!-- Tab switcher: Posts / MediaHub -->
+      <!-- Tab switcher: Posts / MediaHub / Code -->
       <div class="sidebar-tabs">
         <button class="sidebar-tab active" data-tab="posts">Posts</button>
         <button class="sidebar-tab" data-tab="mediahub">MediaHub</button>
+        <button class="sidebar-tab" data-tab="code">Code</button>
       </div>
 
       <div class="sidebar-search-wrap">
@@ -285,7 +285,7 @@
               <option value="movies">Film Movies</option>
               <option value="tvshows">TV Shows</option>
             </optgroup>
-            <optgroup label="Work">
+            <optgroup label="Code">
               <option value="code">Code Project</option>
             </optgroup>
           </select>
@@ -323,8 +323,13 @@
           <input type="text" id="beats-creator" class="field-input" placeholder="Artist or producer name...">
           <label class="field-label">Genre</label>
           <input type="text" id="beats-genre" class="field-input" placeholder="e.g. Hip-Hop, Lo-Fi...">
-          <label class="field-label">Album / Cover Image URL</label>
-          <input type="text" id="beats-image-url" class="field-input" placeholder="https://...">
+          <label class="field-label">Album / Cover Image</label>
+          <div id="beats-drop-area" style="border:2px dashed var(--warm-beige);border-radius:var(--radius-md);padding:12px;text-align:center;cursor:pointer;transition:all .2s ease;margin-bottom:6px;" onclick="document.getElementById('beats-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--forest-green)'" ondragleave="this.style.borderColor='var(--warm-beige)'" ondrop="handleMediaDrop(event,'beats')">
+            <div style="color:var(--text-secondary);font-size:var(--text-sm);">drag & drop or <span style="color:var(--forest-green);font-weight:600;text-decoration:underline;">browse</span></div>
+            <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:2px;">JPG, PNG, WEBP</div>
+          </div>
+          <input type="file" id="beats-file-input" accept="image/*" style="display:none" onchange="handleMediaFile(this.files[0],'beats')">
+          <input type="text" id="beats-image-url" class="field-input" placeholder="or paste image URL https://...">
           <label class="field-label">Song Description</label>
           <textarea id="beats-description" class="field-input" rows="3" style="resize:vertical;" placeholder="About the track..."></textarea>
           <label class="field-label">Song Link</label>
@@ -353,14 +358,21 @@
           </div>
           <label class="field-label">Genre</label>
           <input type="text" id="movies-genre" class="field-input" placeholder="e.g. Drama, Sci-Fi...">
-          <label class="field-label">Poster URL</label>
-          <input type="text" id="movies-image-url" class="field-input" placeholder="https://...">
+          <label class="field-label">Poster Image</label>
+          <div id="movies-drop-area" style="border:2px dashed var(--warm-beige);border-radius:var(--radius-md);padding:12px;text-align:center;cursor:pointer;transition:all .2s ease;margin-bottom:6px;" onclick="document.getElementById('movies-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--forest-green)'" ondragleave="this.style.borderColor='var(--warm-beige)'" ondrop="handleMediaDrop(event,'movies')">
+            <div style="color:var(--text-secondary);font-size:var(--text-sm);">drag & drop or <span style="color:var(--forest-green);font-weight:600;text-decoration:underline;">browse</span></div>
+            <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:2px;">JPG, PNG, WEBP</div>
+          </div>
+          <input type="file" id="movies-file-input" accept="image/*" style="display:none" onchange="handleMediaFile(this.files[0],'movies')">
+          <input type="text" id="movies-image-url" class="field-input" placeholder="or paste image URL https://...">
           <label class="field-label">Synopsis</label>
           <textarea id="movies-description" class="field-input" rows="3" style="resize:vertical;" placeholder="Movie synopsis..."></textarea>
           <label class="field-label">Director</label>
           <input type="text" id="movies-creator" class="field-input" placeholder="Director name...">
           <label class="field-label">Stars</label>
           <input type="text" id="movies-stars" class="field-input" placeholder="Cast, comma-separated...">
+          <label class="field-label">Why I Like It</label>
+          <textarea id="movies-notes" class="field-input" rows="3" style="resize:vertical;" placeholder="What makes this movie special to you..."></textarea>
           <label class="field-label">Movie Info Link</label>
           <input type="url" id="movies-info-link" class="field-input" placeholder="https://imdb.com/title/...">
           <p style="font-size:var(--text-xs);color:var(--text-secondary);margin:0 0 var(--space-xs) 0;">Movie title will link here on the public page.</p>
@@ -375,14 +387,21 @@
           </div>
           <label class="field-label">Genre</label>
           <input type="text" id="tvshows-genre" class="field-input" placeholder="e.g. Drama, Comedy...">
-          <label class="field-label">Poster URL</label>
-          <input type="text" id="tvshows-image-url" class="field-input" placeholder="https://...">
+          <label class="field-label">Poster Image</label>
+          <div id="tvshows-drop-area" style="border:2px dashed var(--warm-beige);border-radius:var(--radius-md);padding:12px;text-align:center;cursor:pointer;transition:all .2s ease;margin-bottom:6px;" onclick="document.getElementById('tvshows-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--forest-green)'" ondragleave="this.style.borderColor='var(--warm-beige)'" ondrop="handleMediaDrop(event,'tvshows')">
+            <div style="color:var(--text-secondary);font-size:var(--text-sm);">drag & drop or <span style="color:var(--forest-green);font-weight:600;text-decoration:underline;">browse</span></div>
+            <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:2px;">JPG, PNG, WEBP</div>
+          </div>
+          <input type="file" id="tvshows-file-input" accept="image/*" style="display:none" onchange="handleMediaFile(this.files[0],'tvshows')">
+          <input type="text" id="tvshows-image-url" class="field-input" placeholder="or paste image URL https://...">
           <label class="field-label">Synopsis</label>
           <textarea id="tvshows-description" class="field-input" rows="3" style="resize:vertical;" placeholder="Show synopsis..."></textarea>
           <label class="field-label">Director / Creator</label>
           <input type="text" id="tvshows-creator" class="field-input" placeholder="Creator or director...">
           <label class="field-label">Stars</label>
           <input type="text" id="tvshows-stars" class="field-input" placeholder="Cast, comma-separated...">
+          <label class="field-label">Why I Like It</label>
+          <textarea id="tvshows-notes" class="field-input" rows="3" style="resize:vertical;" placeholder="What makes this show special to you..."></textarea>
           <label class="field-label">Show Info Link</label>
           <input type="url" id="tvshows-info-link" class="field-input" placeholder="https://imdb.com/title/...">
           <p style="font-size:var(--text-xs);color:var(--text-secondary);margin:0 0 var(--space-xs) 0;">Show title will link here on the public page.</p>

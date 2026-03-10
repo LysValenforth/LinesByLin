@@ -15,7 +15,7 @@
         <img src="assets/icons/logo.svg" class="nav-icon" alt="" style="width: 50px; height: 50px;"> LINESBYLIN
       </a>
       <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item"><a href="index.html" class="nav-link active">Home</a></li>
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
         <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
         <li class="nav-item dropdown">
           <a href="#" class="nav-link dropdown-toggle">
@@ -775,97 +775,99 @@
     }
   </style>
 
-  <section class="section section-alt" id="contact">
+  <section id="contact" style="
+    background: var(--dark-moss);
+    padding: var(--space-xl) 0 var(--space-lg);
+  ">
     <div class="container">
-      <div style="text-align:center; margin-bottom: var(--space-lg);">
-        <h2> Get in Touch</h2>
+
+      <!-- Full-width quote -->
+      <div style="
+        text-align: center;
+        margin-bottom: var(--space-lg);
+        padding-bottom: var(--space-lg);
+        border-bottom: 1px solid rgba(167,196,188,.2);
+      ">
+        <svg width="32" height="24" viewBox="0 0 32 24" fill="none" style="margin-bottom: var(--space-xs); opacity:.4;">
+          <path d="M0 24V14.4C0 9.6 1.6 5.6 4.8 2.4L8 0L10.4 2.4C8.267 4.267 7.2 6.667 7.2 9.6H12.8V24H0ZM19.2 24V14.4C19.2 9.6 20.8 5.6 24 2.4L27.2 0L29.6 2.4C27.467 4.267 26.4 6.667 26.4 9.6H32V24H19.2Z" fill="var(--soft-blue)"/>
+        </svg>
+        <p style="
+          font-family: var(--font-heading);
+          font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+          color: var(--cream);
+          line-height: 1.85;
+          max-width: 660px;
+          margin: 0 auto var(--space-xs);
+          font-style: italic;
+          opacity: .85;
+        ">True growth begins the moment we stop chasing who we think we should be, and start listening to the quiet truth of who we already are.</p>
+        <span style="font-size:var(--text-xs);color:var(--soft-blue);font-weight:700;letter-spacing:.1em;text-transform:uppercase;">— linesbylin</span>
       </div>
 
-      <div class="contact-container">
-        <!-- Contact Form -->
-        <div class="contact-form-wrapper">
-          <h3 class="form-title">Send Me a Message</h3>
-          <form class="contact-form" id="contactForm">
-            <div class="form-group">
-              <label for="name">Full Name *</label>
-              <input type="text" id="name" name="name" required placeholder="John Doe">
-            </div>
-            <div class="form-group">
-              <label for="email">Email Address *</label>
-              <input type="email" id="email" name="email" required placeholder="john@example.com">
-            </div>
-            <div class="form-group">
-              <label for="subject">Subject *</label>
-              <input type="text" id="subject" name="subject" required placeholder="Project Collaboration">
-            </div>
-            <div class="form-group">
-              <label for="message">Message *</label>
-              <textarea id="message" name="message" rows="6" required placeholder="Tell me about your project or inquiry..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary btn-submit">
-              Send Message
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
-              </svg>
-            </button>
-          </form>
+      <!-- Heading + contacts side by side -->
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-lg);
+        flex-wrap: wrap;
+      ">
+        <!-- Left -->
+        <div style="flex:1; min-width:240px;">
+          <h2 style="
+            font-family: var(--font-heading);
+            font-size: clamp(2.8rem, 6vw, 5rem);
+            color: var(--cream);
+            line-height: 1.05;
+            margin: 0 0 .4rem;
+          ">Let's Connect.</h2>
+          <p style="color:rgba(246,241,231,.45); font-size:var(--text-base); margin:0;">My inbox is always open.</p>
         </div>
 
-        <!-- Contact Info -->
-        <div class="contact-info-wrapper">
-          <h3 class="info-title">Contact Information</h3>
-          <div class="contact-details">
-            <div class="contact-detail-item">
-              <div class="detail-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z" fill="currentColor"/>
-                </svg>
-              </div>
-              <div class="detail-content">
-                <h4>Email</h4>
-                <a href="/cdn-cgi/l/email-protection#731f1a0b0516011a1d1c33141e121a1f5d101c1e"><span class="__cf_email__" data-cfemail="197570616f7c6b707776597e74787075377a7674">[email&#160;protected]</span></a>
-              </div>
-            </div>
-            <div class="contact-detail-item">
-              <div class="detail-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
-                </svg>
-              </div>
-              <div class="detail-content">
-                <h4>Location</h4>
-                <p>Caloocan City, Philippines</p>
-              </div>
-            </div>
-          </div>
+        <!-- Right -->
+        <div style="
+          display:flex; flex-direction:column;
+          gap:12px; text-align:right; min-width:220px;
+        ">
+          <a href="/cdn-cgi/l/email-protection#8befe2e5eafceae5eae4a5e7e2f3ffeef9e5e2e5e4cbdeeea5eeeffea5fbe3" style="
+            color:var(--soft-blue); font-size:var(--text-sm); font-weight:600;
+            text-decoration:none; display:flex; align-items:center; justify-content:flex-end; gap:7px;
+          "><span class="__cf_email__" data-cfemail="63070a0d0214020d020c4d0f0a1b1706110d0a0d0c2316064d0607164d130b">[email&#160;protected]</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 4h16v16H4z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+          <a href="tel:+639295727268" style="
+            color:var(--soft-blue); font-size:var(--text-sm); font-weight:600;
+            text-decoration:none; display:flex; align-items:center; justify-content:flex-end; gap:7px;
+          ">(+63) 919 383 6894
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </a>
+          <p style="color:rgba(246,241,231,.35); font-size:var(--text-xs); margin:0;">Caloocan City, Philippines</p>
 
-          <div class="social-links">
-            <h4>Follow Me</h4>
-            <div class="social-icons">
-              <a href="https://github.com/LysValenforth" class="social-icon" aria-label="GitHub">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.477 2 2 6.477 2 12C2 16.418 4.865 20.166 8.839 21.489C9.339 21.579 9.521 21.269 9.521 21.004C9.521 20.769 9.513 20.146 9.508 19.318C6.726 19.91 6.139 17.846 6.139 17.846C5.685 16.699 5.029 16.39 5.029 16.39C4.121 15.784 5.098 15.797 5.098 15.797C6.101 15.867 6.629 16.814 6.629 16.814C7.521 18.341 8.97 17.896 9.539 17.641C9.631 16.993 9.889 16.548 10.175 16.299C7.955 16.048 5.62 15.204 5.62 11.349C5.62 10.263 6.01 9.373 6.649 8.674C6.546 8.423 6.204 7.434 6.747 6.067C6.747 6.067 7.586 5.798 9.497 7.066C10.31 6.849 11.16 6.74 12.01 6.736C12.86 6.74 13.71 6.849 14.524 7.066C16.434 5.798 17.272 6.067 17.272 6.067C17.816 7.434 17.474 8.423 17.371 8.674C18.011 9.373 18.398 10.263 18.398 11.349C18.398 15.214 16.058 16.045 13.832 16.292C14.191 16.604 14.512 17.219 14.512 18.156C14.512 19.507 14.5 20.596 14.5 21.004C14.5 21.271 14.679 21.584 15.186 21.488C19.158 20.163 22 16.417 22 12C22 6.477 17.523 2 12 2Z"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          <div class="response-time">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="currentColor"/>
-            </svg>
-            <p>I typically respond within 24-48 hours</p>
+          <div style="margin-top:4px;">
+            <p style="color:rgba(246,241,231,.4); font-size:var(--text-xs); margin:0 0 6px; text-transform:uppercase; letter-spacing:.07em;">Find me on</p>
+            <a href="https://github.com/LysValenforth" style="
+              display:inline-flex; align-items:center; justify-content:center;
+              width:36px; height:36px; border-radius:50%;
+              background:rgba(255,255,255,.08); color:var(--cream);
+              transition:background .2s;
+            " aria-label="GitHub"
+              onmouseover="this.style.background='rgba(167,196,188,.25)'"
+              onmouseout="this.style.background='rgba(255,255,255,.08)'">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.09.682-.22.682-.485 0-.236-.008-.859-.013-1.687-2.782.592-3.369-1.974-3.369-1.974-.454-1.147-1.11-1.452-1.11-1.452-.908-.62.069-.607.069-.607 1.003.07 1.531.947 1.531.947.892 1.527 2.341 1.086 2.91.831.092-.647.35-1.086.636-1.337-2.22-.253-4.555-1.145-4.555-5.195 0-1.148.39-2.085 1.029-2.82-.103-.253-.446-1.337.098-2.787 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.82c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.45.203 2.534.1 2.787.64.735 1.028 1.672 1.028 2.82 0 4.058-2.339 4.95-4.566 5.21.359.31.678.92.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+            </a>
           </div>
         </div>
       </div>
+
     </div>
   </section>
 
-  <footer class="footer">
+  <footer class="footer" style="padding-top: 0;">
+    <div style="max-width: var(--container-width); margin: 0 auto; padding: 0 var(--space-md);">
+      <div style="border-bottom: 1px solid rgba(167,196,188,.2); margin-bottom: var(--space-md);"></div>
+    </div>
     <div class="footer-content">
-      <span class="footer-logo">
-         LINESBYLIN
-      </span>
+      <span class="footer-logo">LINESBYLIN</span>
       <div class="footer-links">
         <a href="blog.html">Blog</a>
         <a href="poems.html">Poems</a>
@@ -873,7 +875,7 @@
         <a href="code.html">Code</a>
         <a href="mediahub.html">MediaHub</a>
       </div>
-      <p style="color:var(--soft-blue); font-size:var(--text-sm); margin:0;">Handcrafted with care</p>
+      <p style="color:var(--soft-blue); font-size:var(--text-sm); margin:0;">©2026 LinesByLin. All rights reserved.</p>
     </div>
   </footer>
 
@@ -884,12 +886,4 @@
     <span class="progress-icon">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="19" x2="12" y2="5"></line>
-        <polyline points="5 12 12 5 19 12"></polyline>
-      </svg>
-    </span>
-  </div>
-
-    <script src="js/mediahub.js"></script>
-  <script src="js/main.js"></script>
-</body>
-</html>
+        <polyline points="5

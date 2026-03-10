@@ -38,6 +38,30 @@ function initNav() {
     });
   }
 
+  // ── Set active nav link based on current page ────────────────────────────
+  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-link').forEach(link => {
+    const href = link.getAttribute('href') || '';
+    link.classList.remove('active');
+    // Only match real page links, not anchor links
+    if (!href.startsWith('#') && href !== '' && href !== 'javascript:void(0)') {
+      const linkPage = href.split('/').pop().split('?')[0].split('#')[0];
+      if (linkPage === currentPath) link.classList.add('active');
+    }
+  });
+
+  // ── Fix anchor links (#about, #contact) from other pages ────────────────
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const hash = this.getAttribute('href');
+      const isHome = currentPath === 'index.html' || currentPath === '';
+      if (!isHome && hash) {
+        e.preventDefault();
+        window.location.href = 'index.html' + hash;
+      }
+    });
+  });
+
   const allDropdowns = document.querySelectorAll('.dropdown');
 
   allDropdowns.forEach(dd => {

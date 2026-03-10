@@ -29,7 +29,7 @@
       --shf:       6px 6px 0 var(--moss);
       --bd:        1.5px solid var(--beige);
       --tr:        0.18s ease;
-      --nav:       54px;
+      --nav:       68px;
       --bnav:      60px; 
       --map-default:  #c8dfc0;
       --map-dream:    #e8b84b;
@@ -52,10 +52,10 @@
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:9999}
 
     /* ── Top Bar ─────────────────────────────────────────────────────────── */
-    .topbar{height:var(--nav);background:var(--bg);border-bottom:var(--bd);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;z-index:100}
-    .logo{font-family:var(--h);font-size:1.2rem;color:var(--fg);display:flex;align-items:center;gap:7px;white-space:nowrap}
-    .sep{width:1px;height:22px;background:var(--beige);flex-shrink:0}
-    .top-sub{font-size:.78rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar{height:var(--nav);background:var(--bg);border-bottom:var(--bd);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;z-index:100}
+    .logo{font-family:var(--h);font-size:1.6rem;color:var(--fg);display:flex;align-items:center;gap:8px;white-space:nowrap}
+    .sep{width:1px;height:28px;background:var(--beige);flex-shrink:0}
+    .top-sub{font-size:.9rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .top-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 
     /* share banner */
@@ -71,7 +71,7 @@
     .ib{background:none;border:none;cursor:pointer;display:flex;align-items:center;padding:2px;color:inherit}
 
     /* icon btn */
-    .icon-btn{background:none;border:var(--bd);cursor:pointer;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:var(--r2);font-family:var(--b);font-size:.78rem;font-weight:700;color:var(--fg);transition:all var(--tr)}
+    .icon-btn{background:none;border:var(--bd);cursor:pointer;display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:var(--r2);font-family:var(--b);font-size:.88rem;font-weight:700;color:var(--fg);transition:all var(--tr);text-decoration:none}
     .icon-btn:hover{background:var(--beige)}
     .icon-btn.active{background:var(--fg);color:var(--cream);border-color:var(--fg)}
 
@@ -170,27 +170,27 @@
 
     /* map legend */
     .map-legend{position:absolute;bottom:16px;right:16px;background:rgba(250,246,239,.9);border:var(--bd);border-radius:var(--r2);padding:8px 12px;display:flex;flex-direction:column;gap:5px;backdrop-filter:blur(4px);pointer-events:none}
-    .legend-item{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--txt2);font-weight:600}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--txt2);font-weight:600}
     .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,.1)}
 
     /* ── Viewer Right Panel ──────────────────────────────────────────────── */
     .vp{width:310px;min-width:310px;background:var(--surface);border-left:var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:width .3s ease}
     .vp-hd{padding:12px 16px 10px;border-bottom:var(--bd);background:var(--bg);flex-shrink:0}
-    .vp-title{font-family:var(--h);font-size:1.05rem;color:var(--fg);display:flex;align-items:center;gap:6px;margin-bottom:1px}
-    .vp-hint{font-size:.73rem;color:var(--txt2)}
+    .vp-title{font-family:var(--h);font-size:1.2rem;color:var(--fg);display:flex;align-items:center;gap:6px;margin-bottom:1px}
+    .vp-hint{font-size:.82rem;color:var(--txt2)}
     .vp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 18px;text-align:center;gap:10px}
     .vp-empty.hidden{display:none}
     .vp-ei{width:56px;height:56px;background:var(--beige);border-radius:50%;display:flex;align-items:center;justify-content:center;border:var(--bd)}
-    .vp-empty h3{font-family:var(--h);font-size:1rem;color:var(--txt);margin-bottom:2px}
-    .vp-empty p{font-size:.79rem;color:var(--txt2);line-height:1.6}
+    .vp-empty h3{font-family:var(--h);font-size:1.15rem;color:var(--txt);margin-bottom:2px}
+    .vp-empty p{font-size:.88rem;color:var(--txt2);line-height:1.6}
     .vp-content{flex:1;overflow-y:auto;display:none;flex-direction:column;animation:fadeIn .25s ease}
     .vp-content.vis{display:flex}
     .vp-hero{width:100%;height:148px;object-fit:cover;display:none;border-bottom:var(--bd)}
     .vp-hero.vis{display:block}
     .vp-heroph{width:100%;height:148px;background:linear-gradient(135deg,#c8dfc0 0%,var(--blue) 100%);display:flex;align-items:center;justify-content:center;border-bottom:var(--bd);flex-shrink:0}
     .vp-info{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
-    .vp-cn{font-family:var(--h);font-size:1.2rem;color:var(--moss);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-    .status-pill{font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:var(--r3);display:inline-flex;align-items:center;gap:3px}
+    .vp-cn{font-family:var(--h);font-size:1.35rem;color:var(--moss);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .status-pill{font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:var(--r3);display:inline-flex;align-items:center;gap:3px}
     .pill-dream{background:#fff8e7;color:var(--amber);border:1px solid var(--amber)}
     .pill-visited{background:#eef5eb;color:var(--fg);border:1px solid var(--fg)}
     .vp-quote{background:linear-gradient(135deg,var(--blue) 0%,var(--beige) 100%);border:var(--bd);border-radius:var(--r2);padding:10px 13px 10px 18px;position:relative;font-family:var(--h);font-size:.92rem;color:var(--moss);line-height:1.6}
@@ -321,7 +321,7 @@
     My Dream Map
   </div>
   <div class="sep"></div>
-  <a href="index.html" class="icon-btn">HOME</a>
+  <a href="index.html" class="icon-btn" style="text-decoration:none;">HOME</a>
   <span class="top-sub" id="topSub">Click a country to explore</span>
   <div class="top-right">
     <button class="icon-btn" id="listBtn" onclick="openList()">

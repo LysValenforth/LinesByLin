@@ -24,7 +24,7 @@ async function loadMediaHubPage(category) {
 
   let items = [];
   try {
-    items = await getMediaHubByCategory(category);
+    items = (await getMediaHubByCategory(category)).filter(i => i.category !== 'code');
   } catch (e) {
     grid.innerHTML = '<p class="error-text">Could not load items. Check Firebase config.</p>';
     return;
@@ -161,7 +161,7 @@ async function loadMediaHubFeatured() {
   container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
   if (typeof getAllMediaHub !== 'function') { container.innerHTML = '<p class="error-text">Firebase not configured.</p>'; return; }
   try {
-    const items = await getAllMediaHub();
+    const items = (await getAllMediaHub()).filter(i => i.category !== 'code');
     if (!items.length) { container.innerHTML = '<div class="empty-state"><p>No media added yet.</p></div>'; return; }
     container.innerHTML = '';
     items.slice(0, 9).forEach(item => container.appendChild(buildMediaCard(item, item.category)));
@@ -171,6 +171,7 @@ async function loadMediaHubFeatured() {
 }
 
 function buildMediaCard(item, category) {
+  if (category === 'code') return null;
   if (category === 'beats') return buildBeatCard(item);
   return buildMovieCard(item, category);
 }
