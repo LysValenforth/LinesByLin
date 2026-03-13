@@ -28,6 +28,14 @@
   font-size: var(--text-xl);
   color: var(--forest-green);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sidebar-title .nav-icon {
+  width: 1em !important;
+  height: 1em !important;
+  opacity: 1;
 }
 
 .sidebar-search-wrap {
@@ -195,7 +203,7 @@
   padding: var(--space-lg);
   min-height: 500px;
   box-shadow: var(--shadow-soft);
-  position: relative; /* needed for absolute children */
+  position: relative;
 }
 
 .no-post-selected {
@@ -213,7 +221,6 @@
 .no-post-icon { font-size: 4rem; margin-bottom: var(--space-sm); opacity: 0.4; }
 
 /* ── Sections ─────────────────────────────────── */
-/* ── Sections (absolute canvas) ──────────────── */
 .editor-sections {
   position: relative;
   min-height: 500px;
@@ -326,7 +333,6 @@
 .editor-section:hover .sec-resize,
 .editor-section.is-resizing .sec-resize { opacity: 1; }
 
-/* Right edge — horizontal resize */
 .sec-resize-e {
   right: -4px;
   top: 20%;
@@ -349,7 +355,6 @@
 }
 .sec-resize-e:hover::before { opacity: 1; }
 
-/* Bottom edge — vertical resize */
 .sec-resize-s {
   bottom: -4px;
   left: 20%;
@@ -372,7 +377,6 @@
 }
 .sec-resize-s:hover::before { opacity: 1; }
 
-/* Bottom-right corner — both axes */
 .sec-resize-se {
   bottom: -4px;
   right: -4px;
@@ -472,6 +476,14 @@
   font-size: var(--text-xl);
   color: var(--forest-green);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.controls-title .nav-icon {
+  width: 1em !important;
+  height: 1em !important;
+  opacity: 1;
 }
 
 .controls-content {
@@ -483,6 +495,9 @@
 .control-section { margin-bottom: var(--space-md); }
 
 .control-section-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
   color: var(--text-secondary);
@@ -491,6 +506,11 @@
   margin-bottom: var(--space-xs);
   padding-bottom: var(--space-xs);
   border-bottom: 1px solid var(--warm-beige);
+}
+.control-section-title .nav-icon {
+  width: 1em !important;
+  height: 1em !important;
+  opacity: 0.8;
 }
 
 /* Post settings fields */
@@ -525,7 +545,7 @@
 }
 
 .section-btn {
-  padding: var(--space-sm);
+  padding: 7px 10px;
   border: var(--border-width) solid var(--warm-beige);
   background-color: var(--bg-surface);
   border-radius: var(--radius-md);
@@ -534,21 +554,26 @@
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 8px;
   font-family: var(--font-body);
 }
 
 .section-btn:hover { background-color: var(--warm-beige); border-color: var(--forest-green); }
 
 .section-btn-icon {
-  width: 32px; height: 32px;
+  width: 24px; height: 24px;
   background-color: var(--soft-blue);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-lg);
+  font-size: var(--text-sm);
   flex-shrink: 0;
+}
+.section-btn-icon img {
+  width: 14px !important;
+  height: 14px !important;
+  opacity: 0.85;
 }
 
 .section-btn-text {
@@ -562,16 +587,25 @@
   border: 2px dashed var(--warm-beige);
   border-radius: var(--radius-md);
   padding: var(--space-md);
-  text-align: center;
   cursor: pointer;
   transition: all var(--transition-fast);
   margin-top: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  text-align: center;
 }
 .image-upload-area:hover { border-color: var(--forest-green); background-color: var(--warm-beige); }
 
-.upload-icon { font-size: 2rem; margin-bottom: var(--space-xs); color: var(--forest-green); }
+.upload-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest-green);
+}
 .upload-text { font-size: var(--text-sm); color: var(--text-secondary); }
-
 
 /* ── Sidebar Tabs ─────────────────────────────── */
 .sidebar-tabs {
@@ -583,9 +617,9 @@
 
 .sidebar-tab {
   flex: 1;
-  padding: 10px var(--space-xs);
+  padding: 8px 4px;
   font-family: var(--font-body);
-  font-size: var(--text-sm);
+  font-size: 0.76rem;
   font-weight: var(--font-semibold);
   color: var(--text-secondary);
   background: none;
@@ -594,6 +628,8 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-tab:hover { color: var(--forest-green); background-color: var(--warm-beige); }
@@ -602,6 +638,9 @@
   border-bottom-color: var(--forest-green);
   background-color: var(--soft-blue);
 }
+
+/* Hide any extra tab injected beyond the 4th (JS injects Gallery as 5th) */
+.sidebar-tabs .sidebar-tab:nth-child(n+5) { display: none; }
 
 /* ── Word Count ───────────────────────────────── */
 .word-count-display {
@@ -622,7 +661,6 @@
   visibility: visible;
 }
 
-
 /* Status indicator text transition */
 .editor-save-status {
   transition: opacity var(--transition-fast);
@@ -639,6 +677,33 @@
 
 /* ── Nav override for editor page ────────────── */
 .editor-nav .nav-logo { font-size: var(--text-xl); }
+
+/* Override page-enhancements 42px logo icon */
+.editor-nav .nav-logo .nav-icon {
+  width: 1.1em !important;
+  height: 1.1em !important;
+  opacity: 1;
+}
+
+/* ── Button icons (SVGs inside .btn) ─────────── */
+.icon-btn {
+  width: 1em !important;
+  height: 1em !important;
+  flex-shrink: 0;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* ── Remove shadow from Save / New buttons in editor ── */
+.editor-nav .btn-primary,
+.sidebar-actions .btn-primary {
+  box-shadow: none;
+}
+.editor-nav .btn-primary:hover,
+.sidebar-actions .btn-primary:hover {
+  box-shadow: none;
+  transform: none;
+}
 
 .editor-save-status {
   display: flex;
@@ -720,8 +785,6 @@
 }
 
 /* ── Docs-style Toolbar Extensions ───────────────── */
-
-/* Make the toolbar scrollable on narrow screens */
 .editor-toolbar-top {
   overflow-x: auto;
   overflow-y: hidden;
@@ -744,7 +807,6 @@
   padding: 0;
 }
 
-/* Separator between groups */
 .toolbar-sep {
   width: 1px;
   height: 22px;
@@ -753,7 +815,6 @@
   flex-shrink: 0;
 }
 
-/* Font family dropdown */
 .toolbar-select {
   font-family: var(--font-body);
   font-size: var(--text-sm);
@@ -773,7 +834,6 @@
 .toolbar-font-sel  { width: 130px; }
 .toolbar-block-sel { width: 100px; }
 
-/* Font size group */
 .toolbar-size-group {
   display: flex;
   align-items: center;
@@ -799,7 +859,6 @@
 .toolbar-size-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .toolbar-size-input:focus { border-color: var(--forest-green); }
 
-/* Text color / highlight buttons */
 .toolbar-color-btn {
   display: flex;
   flex-direction: column;
@@ -825,7 +884,6 @@
   border-radius: 2px;
 }
 
-/* Format-btn sizing — uniform */
 .format-btn {
   width: auto;
   min-width: 28px;
@@ -872,14 +930,11 @@
   color: var(--text-secondary);
 }
 
-/* ── editor-main must be a flex column so mode msg can flex:1 ── */
 .editor-main {
   display: flex;
   flex-direction: column;
 }
 
-/* ── Toolbar button variants ──────────────────── */
-/* Align L/C/R/J — bold small caps feel */
 .format-btn.tb-align {
   font-size: 11px;
   font-weight: 800;
@@ -888,7 +943,6 @@
   font-style: normal;
 }
 
-/* List buttons — monospace feel */
 .format-btn.tb-list {
   font-size: 11px;
   font-weight: 700;
@@ -897,27 +951,23 @@
   font-family: var(--font-body);
 }
 
-/* Indent buttons — arrow chars, same size */
 .format-btn.tb-indent {
   font-size: 14px;
   min-width: 26px;
 }
 
-/* Clear (×) — slightly larger */
 .format-btn.tb-clear {
   font-size: 16px;
   font-weight: 400;
   min-width: 26px;
 }
 
-/* ── Duplicate section button ─────────────────── */
 .section-btn-dupe {
   background-color: var(--soft-blue);
   color: var(--dark-moss);
   font-size: 0.85rem;
 }
 
-/* ── Toolbar dims when no section focused ─────── */
 .editor-toolbar-top {
   transition: opacity 0.2s ease;
 }
@@ -925,7 +975,6 @@
   opacity: 0.45;
   pointer-events: none;
 }
-/* Always interactive when hovering */
 .editor-toolbar-top:hover {
   opacity: 1;
   pointer-events: auto;
@@ -980,7 +1029,6 @@
   transform: translateX(16px);
 }
 
-/* ── Field hint text ──────────────────────────── */
 .field-hint {
   font-size: 10px;
   color: var(--text-secondary);
@@ -989,7 +1037,6 @@
   line-height: 1.4;
 }
 
-/* ── Draft badge in sidebar ───────────────────── */
 .post-list-draft {
   display: inline-block;
   font-size: 9px;
@@ -1004,10 +1051,6 @@
   margin-left: 4px;
   opacity: 0.85;
 }
-
-/* ══════════════════════════════════════════════════════
-   EDITOR IMPROVEMENTS — additional styles
-   ══════════════════════════════════════════════════════ */
 
 /* ── Category filter pills (sidebar) ────────────────── */
 .sidebar-cat-filter {
@@ -1034,7 +1077,6 @@
 .cat-pill.active { background: var(--forest-green); color: var(--cream); border-color: var(--forest-green); }
 
 /* ── Flow Mode canvas ────────────────────────────────── */
-/* When flow mode is on, sections stack vertically, no absolute positioning */
 .editor-sections.flow-mode {
   position: static !important;
   min-height: unset !important;
@@ -1051,12 +1093,10 @@
   min-height: unset !important;
   box-sizing: border-box;
 }
-/* Hide resize handles and drag handle in flow mode */
 .editor-sections.flow-mode .sec-resize,
 .editor-sections.flow-mode .section-handle {
   display: none !important;
 }
-/* Show a subtle grab row at top instead */
 .editor-sections.flow-mode .editor-section {
   padding-top: 10px;
   border-top: 2px dashed var(--warm-beige);
@@ -1065,14 +1105,13 @@
   border-top: none;
 }
 
-/* Flow mode toggle button active state */
 #btn-flow-mode.flow-active {
   background: var(--forest-green);
   color: var(--cream);
   border-color: var(--forest-green);
 }
 
-/* ── Fullscreen / Distraction-free mode ──────────────── */
+/* ── Fullscreen mode ──────────────────────────────── */
 body.fullscreen-mode .editor-sidebar,
 body.fullscreen-mode .editor-controls,
 body.fullscreen-mode .editor-toolbar-top,
@@ -1094,7 +1133,6 @@ body.fullscreen-mode .editor-preview {
   max-width: 680px;
   box-shadow: var(--shadow-floating);
 }
-/* Fullscreen exit button — always on top */
 #fullscreen-exit-btn {
   display: none;
   position: fixed;
@@ -1116,13 +1154,11 @@ body.fullscreen-mode .editor-preview {
 #fullscreen-exit-btn:hover { transform: scale(1.04); }
 body.fullscreen-mode #fullscreen-exit-btn { display: block; }
 
-/* ── Snap-to-grid visual hint while dragging ─────────── */
 .editor-section.is-dragging {
   outline: 2px dashed var(--soft-blue);
   outline-offset: 2px;
 }
 
-/* ── Duplicate button in section side controls ────────── */
 .section-btn-dupe {
   background: rgba(167,196,188,0.2);
   color: var(--forest-green);
@@ -1132,24 +1168,19 @@ body.fullscreen-mode #fullscreen-exit-btn { display: block; }
   background: var(--soft-blue);
 }
 
-/* ── Preview button ──────────────────────────────────── */
 #btn-preview-post {
   gap: 4px;
 }
 
-/* ── Spellcheck indicator — subtle green underline for corrections ── */
 [contenteditable]:focus {
   outline: none;
 }
 
-/* ── Autosave debounce — no visual changes, just CSS for save dot pulse ── */
 .status-indicator.autosaving {
   background-color: var(--soft-blue);
   animation: pulse 0.8s infinite;
 }
 
-/* ── Unsaved-changes nav guard ────────────────────────── */
-/* Nav links show a subtle warning color when dirty */
 body.has-unsaved-changes .nav-logo::after {
   content: '●';
   color: var(--alert-red);
@@ -1158,7 +1189,6 @@ body.has-unsaved-changes .nav-logo::after {
   margin-left: 4px;
 }
 
-/* ── Audio drop zone ──────────────────────────────────── */
 .audio-drop-zone {
   border: 2px dashed var(--warm-beige);
   border-radius: var(--radius-md);
@@ -1178,7 +1208,6 @@ body.has-unsaved-changes .nav-logo::after {
 .audio-drop-zone.drag-over { border-color: var(--forest-green); background: rgba(47,93,80,0.04); }
 .audio-drop-zone.has-audio { border-color: var(--forest-green); background: rgba(47,93,80,0.07); color: var(--forest-green); }
 
-/* ── Snap grid: 8px grid lines hint on canvas ────────── */
 .editor-preview.snap-hint {
   background-image:
     linear-gradient(rgba(167,196,188,0.08) 1px, transparent 1px),
@@ -1186,11 +1215,6 @@ body.has-unsaved-changes .nav-logo::after {
   background-size: 8px 8px;
 }
 
-/* ══════════════════════════════════════════════════════
-   NEW FEATURES — appended
-   ══════════════════════════════════════════════════════ */
-
-/* Draft rows get a subtle muted look */
 .post-list-item.is-draft {
   opacity: 0.72;
   border-left: 3px solid var(--alert-red);
@@ -1199,7 +1223,6 @@ body.has-unsaved-changes .nav-logo::after {
 .post-list-item.is-draft .post-list-title { color: var(--text-secondary); }
 .post-list-featured { margin-right: 3px; font-size: 11px; }
 
-/* Keyboard shortcuts grid */
 .shortcut-grid {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1224,7 +1247,6 @@ body.has-unsaved-changes .nav-logo::after {
   align-self: center;
 }
 
-/* Section order list */
 .section-order-list {
   display: flex;
   flex-direction: column;
@@ -1278,7 +1300,6 @@ body.has-unsaved-changes .nav-logo::after {
 }
 .sol-btn:hover { background: var(--forest-green); color: #fff; border-color: var(--forest-green); }
 
-/* Template picker modal */
 .template-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1314,7 +1335,6 @@ body.has-unsaved-changes .nav-logo::after {
 .template-name { font-family: var(--font-heading); font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); }
 .template-hint { font-size: 10px; color: var(--text-secondary); }
 
-/* Delete button in settings panel styling */
 #btn-delete-post {
   justify-content: center;
 }

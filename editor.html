@@ -6,6 +6,7 @@
   <title>Editor</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/page-enhancements.css">
 </head>
 <body>
 
@@ -84,7 +85,7 @@
   <nav class="nav editor-nav">
     <div class="nav-container">
       <a href="index.html" class="nav-logo">
-        <img src="assets/icons/edit.svg" class="nav-icon" alt=""> Editor
+        <img src="assets/icons/edit.svg" class="nav-icon" alt="" style="width:22px;height:22px;"> Editor
       </a>
 
       <!-- Save status indicator -->
@@ -98,7 +99,7 @@
           Preview
         </button>
         <button id="btn-save-post" class="btn btn-primary btn-small" title="Save (Ctrl+S)">
-          <img src="assets/icons/save.svg" class="icon-btn" alt=""> Save
+          Save
         </button>
         <a href="index.html" class="btn btn-secondary btn-small">Site</a>
         <button id="btn-sign-out" class="btn btn-secondary btn-small" title="Sign out">Sign Out</button>
@@ -118,11 +119,12 @@
         </h2>
       </div>
 
-      <!-- Tab switcher: Posts / MediaHub / Code -->
+      <!-- Tab switcher: Posts / MediaHub / Code / Gallery -->
       <div class="sidebar-tabs">
         <button class="sidebar-tab active" data-tab="posts">Posts</button>
         <button class="sidebar-tab" data-tab="mediahub">MediaHub</button>
         <button class="sidebar-tab" data-tab="code">Code</button>
+        <button class="sidebar-tab" data-tab="gallery">Gallery</button>
       </div>
 
       <div class="sidebar-search-wrap">
@@ -146,7 +148,7 @@
 
       <div class="sidebar-actions">
         <button id="btn-new-post" class="btn btn-primary btn-small" style="flex:1;" title="New (Ctrl+N)">
-          <img src="assets/icons/add.svg" class="icon-btn" alt=""> New
+          New
         </button>
       </div>
 
@@ -342,7 +344,7 @@
           <!-- Delete (safe location, in settings) -->
           <div style="margin-top:var(--space-sm); padding-top:var(--space-sm); border-top:1px solid var(--warm-beige);">
             <button id="btn-delete-post" class="btn btn-danger btn-small" style="width:100%;">
-              <img src="assets/icons/delete.svg" class="icon-btn-dark" style="filter:none;opacity:.8;" alt=""> Delete this post
+              <img src="assets/icons/delete.svg" class="icon-btn-dark" style="filter:none;opacity:.8;width:16px;height:16px;flex-shrink:0;" alt=""> Delete this post
             </button>
           </div>
         </div>
@@ -533,7 +535,9 @@
 
         <!-- Image Upload -->
         <div class="control-section">
-          <div class="control-section-title">Image</div>
+          <div class="control-section-title">
+            <img src="assets/icons/add.svg" class="nav-icon" alt=""> Image
+          </div>
           <div class="image-upload-area" id="btn-upload-image">
             <div class="upload-icon">
               <img src="assets/icons/add.svg" style="width:32px;height:32px;" alt="">
