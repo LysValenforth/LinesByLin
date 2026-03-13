@@ -12,8 +12,6 @@
     errorEl.textContent = msg;
     errorEl.style.display = 'block';
   }
-
-  // Watch auth state — hide overlay when signed in, show when signed out
   auth.onAuthStateChanged(function(user) {
     if (user) {
       overlay.style.display = 'none';
@@ -80,6 +78,7 @@ const MEDIAHUB_PANELS = {
 };
 
 let currentCategoryFilter = null; // null = show all, 'code' = show only code
+let currentSubCatFilter   = 'all'; // for sidebar pills: 'all' | 'blog'|'poem'|'story' | 'beats'|'movies'|'tvshows'
 
 // ── Code image preview ───────────────────────────────────────────────────────
 
@@ -190,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
   bindCategoryChange();
   bindSlugAutoFill();
   bindTipsCollapse();
+  bindSidebarCatPills();
+  showSidebarCatFilter('posts'); // default tab is Posts
 
   // Load item from URL params
   const params   = new URLSearchParams(window.location.search);
@@ -200,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setActiveTab(urlColl === 'mediahub' ? 'mediahub' : 'posts');
     loadPostIntoEditor(urlId);
   }
+  updatePreviewButton();
 
   setInterval(autoSave, 5000);
 
@@ -208,9 +210,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ctrl+S / Cmd+S to save
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    const mod = e.ctrlKey || e.metaKey;
+    if (!mod) return;
+
+    if (e.key === 's') {
       e.preventDefault();
       saveCurrentPost();
+      return;
+    }
+    if (e.key === 'n' || e.key === 'N') {
+      e.preventDefault();
+      showTemplatePicker();
+      return;
+    }
+    if (e.key === 'p' || e.key === 'P') {
+      e.preventDefault();
+      if (currentPostId) window.open(`post.html?id=${currentPostId}`, '_blank');
+      return;
+    }
+    if (e.key === 'd' || e.key === 'D') {
+      e.preventDefault();
+      if (typeof duplicateLastFocusedSection === 'function') duplicateLastFocusedSection();
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveLastFocusedSection(-1);
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveLastFocusedSection(1);
+      return;
     }
   });
 
@@ -264,6 +295,10 @@ function bindSidebarTabs() {
         setEditorMode(which === 'mediahub' ? 'mediahub' : 'writing');
       }
 
+      // Show correct sub-category pills, reset selection
+      currentSubCatFilter = 'all';
+      showSidebarCatFilter(which);
+
       loadPostsList();
     });
   });
@@ -272,6 +307,38 @@ function bindSidebarTabs() {
 function setActiveTab(which) {
   document.querySelectorAll('.sidebar-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.tab === which);
+  });
+}
+
+// ── Sidebar sub-category filter pills ────────────────────────────────────────
+function showSidebarCatFilter(tab) {
+  const postsPills = document.getElementById('sidebar-cat-filter-posts');
+  const mediaPills = document.getElementById('sidebar-cat-filter-mediahub');
+  if (postsPills) postsPills.style.display = tab === 'posts'     ? '' : 'none';
+  if (mediaPills) mediaPills.style.display = tab === 'mediahub'  ? '' : 'none';
+
+  // Reset active state on all pills in whichever group is now showing
+  const active = tab === 'posts' ? postsPills : tab === 'mediahub' ? mediaPills : null;
+  if (active) {
+    active.querySelectorAll('.sidebar-cat-pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.cat === 'all');
+    });
+  }
+}
+
+function bindSidebarCatPills() {
+  ['sidebar-cat-filter-posts', 'sidebar-cat-filter-mediahub'].forEach(id => {
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+    wrap.querySelectorAll('.sidebar-cat-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        currentSubCatFilter = pill.dataset.cat;
+        wrap.querySelectorAll('.sidebar-cat-pill').forEach(p =>
+          p.classList.toggle('active', p.dataset.cat === currentSubCatFilter)
+        );
+        loadPostsList();
+      });
+    });
   });
 }
 
@@ -294,6 +361,11 @@ async function loadPostsList() {
       items = items.filter(i => i.category !== 'code');
     }
 
+    // Apply sidebar sub-category pill filter
+    if (currentSubCatFilter && currentSubCatFilter !== 'all') {
+      items = items.filter(i => (i.category || '').toLowerCase() === currentSubCatFilter);
+    }
+
     const searchInput = document.getElementById('sidebar-search');
 
     function render(all) {
@@ -304,15 +376,19 @@ async function loadPostsList() {
       list.innerHTML = '';
       all.forEach(item => {
         const el  = document.createElement('div');
-        el.className = 'post-list-item' + (item.id === currentPostId ? ' active' : '');
+        const isDraft    = item.published === false;
+        const isFeatured = !!item.featured;
+        el.className = 'post-list-item'
+          + (item.id === currentPostId ? ' active' : '')
+          + (isDraft ? ' is-draft' : '');
         el.dataset.id = item.id;
         const date = item.date
           ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '';
-        const draftBadge = item.published === false
-          ? '<span class="post-list-draft">Draft</span>' : '';
+        const draftBadge    = isDraft    ? '<span class="post-list-draft">Draft</span>' : '';
+        const featuredBadge = isFeatured ? '<span class="post-list-featured"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;display:inline-block;vertical-align:middle;margin-right:3px;"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg></span>' : '';
         el.innerHTML = `
-          <div class="post-list-title">${item.title} ${draftBadge}</div>
+          <div class="post-list-title">${featuredBadge}${item.title} ${draftBadge}</div>
           <div class="post-list-meta">
             <span class="post-list-category">${item.category || currentCollection}</span>
             <span>${date}</span>
@@ -398,6 +474,21 @@ async function loadPostIntoEditor(id) {
     markClean();
     highlightActivePost(id);
     updateWordCount();
+    updatePreviewButton();
+    refreshSectionOrderList();
+
+    // Load featured flag
+    const featuredToggle = document.getElementById('post-featured-toggle');
+    if (featuredToggle) featuredToggle.checked = !!item.featured;
+
+    // Load cover image preview
+    const coverVal = document.getElementById('post-cover-input')?.value?.trim();
+    if (coverVal) {
+      const coverImg  = document.getElementById('post-cover-preview-img');
+      const coverWrap = document.getElementById('post-cover-preview-wrap');
+      if (coverImg)  coverImg.src = coverVal;
+      if (coverWrap) coverWrap.style.display = 'block';
+    }
 
     const url = new URL(window.location);
     url.searchParams.set('id', id);
@@ -701,8 +792,9 @@ function gatherPostData() {
   const excerpt     = document.getElementById('post-excerpt-input')?.value.trim() || '';
   const coverImage  = document.getElementById('post-cover-input')?.value.trim() || '';
   const published   = document.getElementById('post-published-toggle')?.checked ?? true;
+  const featured    = document.getElementById('post-featured-toggle')?.checked ?? false;
 
-  return { title, category, date, slug, excerpt, coverImage, published, sections, content };
+  return { title, category, date, slug, excerpt, coverImage, published, featured, sections, content };
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -798,9 +890,11 @@ function setSaveStatus(status) {
 // ── Controls Binding ──────────────────────────────────────────────────────────
 
 function bindEditorControls() {
-  document.getElementById('btn-new-post')?.addEventListener('click', createNewPost);
-  document.getElementById('btn-delete-post')?.addEventListener('click', deleteCurrentPost);
+  document.getElementById('btn-new-post')?.addEventListener('click', () => showTemplatePicker());
   document.getElementById('btn-save-post')?.addEventListener('click', saveCurrentPost);
+  document.getElementById('btn-preview-post')?.addEventListener('click', () => {
+    if (currentPostId) window.open(`post.html?id=${currentPostId}`, '_blank');
+  });
 }
 
 // ── Formatting Toolbar ────────────────────────────────────────────────────────
@@ -1041,6 +1135,182 @@ function bindAudioDropZone() {
 }
 
 document.addEventListener('DOMContentLoaded', bindAudioDropZone);
+
+// ── Template Picker ───────────────────────────────────────────────────────────
+
+const TEMPLATES = {
+  blank: [],
+  poem: [
+    { type: 'title',     content: 'Untitled Poem' },
+    { type: 'text',      content: '' },
+    { type: 'divider' },
+    { type: 'text',      content: '' },
+  ],
+  blog: [
+    { type: 'title',     content: 'Blog Post Title' },
+    { type: 'paragraph', content: 'Write your intro here...' },
+    { type: 'text',      content: '' },
+  ],
+  story: [
+    { type: 'title',     content: 'Story Title' },
+    { type: 'paragraph', content: 'Scene one...' },
+    { type: 'divider' },
+    { type: 'paragraph', content: 'Scene two...' },
+  ],
+};
+
+const TEMPLATE_CATEGORY = { poem: 'poem', blog: 'blog', story: 'story', blank: 'blog' };
+
+function showTemplatePicker() {
+  // Only show for writing posts
+  if (currentCollection === 'mediahub') { createNewPost(); return; }
+  const modal = document.getElementById('template-picker-modal');
+  if (!modal) { createNewPost(); return; }
+  modal.style.display = 'flex';
+
+  const handler = (e) => {
+    const card = e.target.closest('[data-template]');
+    if (!card) return;
+    modal.style.display = 'none';
+    modal.removeEventListener('click', handler);
+    createNewPostFromTemplate(card.dataset.template);
+  };
+  modal.addEventListener('click', handler);
+
+  const keyHandler = (e) => {
+    if (e.key === 'Escape') {
+      modal.style.display = 'none';
+      document.removeEventListener('keydown', keyHandler);
+      modal.removeEventListener('click', handler);
+      createNewPostFromTemplate('blank');
+    }
+  };
+  document.addEventListener('keydown', keyHandler, { once: true });
+}
+
+async function createNewPostFromTemplate(templateKey) {
+  const sections  = TEMPLATES[templateKey] || [];
+  const category  = TEMPLATE_CATEGORY[templateKey] || 'blog';
+  try {
+    const id = await createPost({
+      title:    'Untitled Post',
+      content:  '',
+      category,
+      date:     new Date().toISOString(),
+      sections: sections.length ? sections : [{ type: 'text', content: '' }],
+    });
+    await loadPostsList();
+    await loadPostIntoEditor(id);
+    showToast(`New ${templateKey !== 'blank' ? templateKey : 'post'} created.`, 'success');
+  } catch (err) {
+    console.error('createNewPostFromTemplate error:', err);
+    showToast('Failed to create post.', 'error');
+  }
+}
+
+// ── Section move via keyboard (Ctrl+↑↓) ──────────────────────────────────────
+
+function moveLastFocusedSection(dir) {
+  if (typeof lastFocusedSection === 'undefined' || !lastFocusedSection) return;
+  const container = document.getElementById('editor-sections');
+  if (!container) return;
+  const sections = Array.from(container.querySelectorAll('.editor-section'));
+  const idx = sections.indexOf(lastFocusedSection);
+  if (idx === -1) return;
+  const targetIdx = idx + dir;
+  if (targetIdx < 0 || targetIdx >= sections.length) return;
+  if (dir === -1) {
+    container.insertBefore(lastFocusedSection, sections[targetIdx]);
+  } else {
+    container.insertBefore(sections[targetIdx], lastFocusedSection);
+  }
+  lastFocusedSection.scrollIntoView({ block: 'nearest' });
+  markDirty();
+  refreshSectionOrderList();
+}
+
+// ── Section Order List (right panel) ─────────────────────────────────────────
+
+function refreshSectionOrderList() {
+  const panel   = document.getElementById('section-reorder-panel');
+  const listEl  = document.getElementById('section-order-list');
+  if (!panel || !listEl) return;
+
+  const container = document.getElementById('editor-sections');
+  if (!container) return;
+  const sections = Array.from(container.querySelectorAll('.editor-section'));
+
+  if (sections.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  listEl.innerHTML = '';
+
+  sections.forEach((sec, idx) => {
+    const type    = sec.dataset.type || 'text';
+    const content = sec.querySelector('[contenteditable]')?.textContent?.trim().slice(0, 30) || '';
+    const label   = content || `(${type})`;
+
+    const row = document.createElement('div');
+    row.className        = 'sol-row';
+    row.draggable        = true;
+    row.dataset.idx      = idx;
+    row.innerHTML = `
+      <span class="sol-handle">⠿</span>
+      <span class="sol-type">${type}</span>
+      <span class="sol-label">${label}</span>
+      <div class="sol-arrows">
+        <button class="sol-btn" data-dir="-1" title="Move up">↑</button>
+        <button class="sol-btn" data-dir="1"  title="Move down">↓</button>
+      </div>`;
+
+    row.querySelectorAll('.sol-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = parseInt(btn.dataset.dir);
+        const secs = Array.from(container.querySelectorAll('.editor-section'));
+        const i = parseInt(row.dataset.idx);
+        const target = i + dir;
+        if (target < 0 || target >= secs.length) return;
+        if (dir === -1) container.insertBefore(secs[i], secs[target]);
+        else            container.insertBefore(secs[target], secs[i]);
+        markDirty();
+        refreshSectionOrderList();
+      });
+    });
+
+    // Drag-to-reorder
+    row.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', idx);
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend',  () => row.classList.remove('dragging'));
+    row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
+    row.addEventListener('dragleave',() => row.classList.remove('drag-over'));
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+      const toIdx   = parseInt(row.dataset.idx);
+      if (fromIdx === toIdx) return;
+      const secs = Array.from(container.querySelectorAll('.editor-section'));
+      const el   = secs[fromIdx];
+      if (toIdx < fromIdx) container.insertBefore(el, secs[toIdx]);
+      else                 container.insertBefore(el, secs[toIdx].nextSibling);
+      markDirty();
+      refreshSectionOrderList();
+    });
+
+    listEl.appendChild(row);
+  });
+}
+
+// ── Preview button visibility ─────────────────────────────────────────────────
+
+function updatePreviewButton() {
+  const btn = document.getElementById('btn-preview-post');
+  if (btn) btn.style.display = (currentPostId && currentCollection !== 'mediahub') ? '' : 'none';
+}
 
 // ── Gallery Tab & Panel ───────────────────────────────────────────────────────
 

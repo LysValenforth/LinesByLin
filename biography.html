@@ -14,16 +14,7 @@
       position: relative;
     }
 
-    .bio-hero::before {
-      content: '';
-      position: absolute;
-      top: -80px; right: -80px;
-      width: 420px; height: 420px;
-      background: var(--forest-green);
-      opacity: 0.12;
-      border-radius: 50%;
-      pointer-events: none;
-    }
+    .bio-hero::before { display: none; }
 
     .bio-hero-inner {
       max-width: var(--container-width);

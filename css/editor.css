@@ -1004,3 +1004,317 @@
   margin-left: 4px;
   opacity: 0.85;
 }
+
+/* ══════════════════════════════════════════════════════
+   EDITOR IMPROVEMENTS — additional styles
+   ══════════════════════════════════════════════════════ */
+
+/* ── Category filter pills (sidebar) ────────────────── */
+.sidebar-cat-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px var(--space-sm);
+  border-bottom: 1px solid var(--warm-beige);
+}
+.cat-pill {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: var(--border-width) solid var(--warm-beige);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.cat-pill:hover  { border-color: var(--soft-blue); color: var(--forest-green); }
+.cat-pill.active { background: var(--forest-green); color: var(--cream); border-color: var(--forest-green); }
+
+/* ── Flow Mode canvas ────────────────────────────────── */
+/* When flow mode is on, sections stack vertically, no absolute positioning */
+.editor-sections.flow-mode {
+  position: static !important;
+  min-height: unset !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+}
+.editor-sections.flow-mode .editor-section {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  min-height: unset !important;
+  box-sizing: border-box;
+}
+/* Hide resize handles and drag handle in flow mode */
+.editor-sections.flow-mode .sec-resize,
+.editor-sections.flow-mode .section-handle {
+  display: none !important;
+}
+/* Show a subtle grab row at top instead */
+.editor-sections.flow-mode .editor-section {
+  padding-top: 10px;
+  border-top: 2px dashed var(--warm-beige);
+}
+.editor-sections.flow-mode .editor-section:first-child {
+  border-top: none;
+}
+
+/* Flow mode toggle button active state */
+#btn-flow-mode.flow-active {
+  background: var(--forest-green);
+  color: var(--cream);
+  border-color: var(--forest-green);
+}
+
+/* ── Fullscreen / Distraction-free mode ──────────────── */
+body.fullscreen-mode .editor-sidebar,
+body.fullscreen-mode .editor-controls,
+body.fullscreen-mode .editor-toolbar-top,
+body.fullscreen-mode .nav {
+  display: none !important;
+}
+body.fullscreen-mode .editor-container {
+  grid-template-columns: 1fr;
+  height: 100vh;
+}
+body.fullscreen-mode .editor-main {
+  height: 100vh;
+}
+body.fullscreen-mode .editor-canvas {
+  padding: var(--space-xl);
+  background: var(--bg-primary);
+}
+body.fullscreen-mode .editor-preview {
+  max-width: 680px;
+  box-shadow: var(--shadow-floating);
+}
+/* Fullscreen exit button — always on top */
+#fullscreen-exit-btn {
+  display: none;
+  position: fixed;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 999;
+  background: var(--forest-green);
+  color: var(--cream);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  box-shadow: var(--shadow-medium);
+  transition: transform var(--transition-fast);
+}
+#fullscreen-exit-btn:hover { transform: scale(1.04); }
+body.fullscreen-mode #fullscreen-exit-btn { display: block; }
+
+/* ── Snap-to-grid visual hint while dragging ─────────── */
+.editor-section.is-dragging {
+  outline: 2px dashed var(--soft-blue);
+  outline-offset: 2px;
+}
+
+/* ── Duplicate button in section side controls ────────── */
+.section-btn-dupe {
+  background: rgba(167,196,188,0.2);
+  color: var(--forest-green);
+  border-color: var(--soft-blue);
+}
+.section-btn-dupe:hover {
+  background: var(--soft-blue);
+}
+
+/* ── Preview button ──────────────────────────────────── */
+#btn-preview-post {
+  gap: 4px;
+}
+
+/* ── Spellcheck indicator — subtle green underline for corrections ── */
+[contenteditable]:focus {
+  outline: none;
+}
+
+/* ── Autosave debounce — no visual changes, just CSS for save dot pulse ── */
+.status-indicator.autosaving {
+  background-color: var(--soft-blue);
+  animation: pulse 0.8s infinite;
+}
+
+/* ── Unsaved-changes nav guard ────────────────────────── */
+/* Nav links show a subtle warning color when dirty */
+body.has-unsaved-changes .nav-logo::after {
+  content: '●';
+  color: var(--alert-red);
+  font-size: 8px;
+  vertical-align: super;
+  margin-left: 4px;
+}
+
+/* ── Audio drop zone ──────────────────────────────────── */
+.audio-drop-zone {
+  border: 2px dashed var(--warm-beige);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.audio-drop-zone:hover,
+.audio-drop-zone.drag-over { border-color: var(--forest-green); background: rgba(47,93,80,0.04); }
+.audio-drop-zone.has-audio { border-color: var(--forest-green); background: rgba(47,93,80,0.07); color: var(--forest-green); }
+
+/* ── Snap grid: 8px grid lines hint on canvas ────────── */
+.editor-preview.snap-hint {
+  background-image:
+    linear-gradient(rgba(167,196,188,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167,196,188,0.08) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+/* ══════════════════════════════════════════════════════
+   NEW FEATURES — appended
+   ══════════════════════════════════════════════════════ */
+
+/* Draft rows get a subtle muted look */
+.post-list-item.is-draft {
+  opacity: 0.72;
+  border-left: 3px solid var(--alert-red);
+  padding-left: calc(var(--space-sm) - 3px);
+}
+.post-list-item.is-draft .post-list-title { color: var(--text-secondary); }
+.post-list-featured { margin-right: 3px; font-size: 11px; }
+
+/* Keyboard shortcuts grid */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 10px;
+  margin: 0;
+}
+.shortcut-key {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  background: var(--warm-beige);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  align-self: center;
+  font-weight: 600;
+}
+.shortcut-desc {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  align-self: center;
+}
+
+/* Section order list */
+.section-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sol-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--warm-beige);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: var(--text-xs);
+  cursor: grab;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.sol-row:hover    { background: var(--warm-beige); }
+.sol-row.dragging { opacity: 0.5; }
+.sol-row.drag-over { box-shadow: 0 0 0 2px var(--forest-green); background: rgba(47,93,80,0.08); }
+.sol-handle { color: var(--text-secondary); cursor: grab; flex-shrink: 0; }
+.sol-type {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--forest-green);
+  background: rgba(47,93,80,0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.sol-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+.sol-arrows { display: flex; gap: 2px; flex-shrink: 0; }
+.sol-btn {
+  width: 20px; height: 20px;
+  background: none;
+  border: 1px solid var(--warm-beige);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition-fast);
+}
+.sol-btn:hover { background: var(--forest-green); color: #fff; border-color: var(--forest-green); }
+
+/* Template picker modal */
+.template-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 12px;
+  border: 2px solid var(--warm-beige);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.template-card:hover {
+  border-color: var(--forest-green);
+  background: rgba(47,93,80,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(47,93,80,0.15);
+}
+.template-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest-green);
+}
+.template-icon svg { width: 100%; height: 100%; }
+.template-name { font-family: var(--font-heading); font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); }
+.template-hint { font-size: 10px; color: var(--text-secondary); }
+
+/* Delete button in settings panel styling */
+#btn-delete-post {
+  justify-content: center;
+}

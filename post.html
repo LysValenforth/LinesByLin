@@ -77,7 +77,7 @@
       font-family: var(--font-heading);
       font-style: italic;
       text-align: center;
-      max-width: 520px;       /* narrower column — poems breathe better */
+      max-width: 520px;
       margin: 0 auto;
     }
 
@@ -93,7 +93,7 @@
       opacity: 0.7;
     }
 
-    /* Stanza separator — visible gap with a faint dot between stanzas */
+    /* Stanza separator */
     .post-body.poem-style .poem-stanza {
       margin-bottom: 0;
       padding-bottom: var(--space-lg);
@@ -115,7 +115,7 @@
       transform: translateX(-50%);
     }
 
-    /* Lines within a stanza — tighter than the gap between stanzas */
+    /* Lines within a stanza */
     .post-body.poem-style .poem-stanza p {
       margin: 0;
       line-height: 2.05;
@@ -200,7 +200,6 @@
       font-size: var(--text-2xl);
     }
 
-    /* ── Prev / Next navigation ─────────────────────────── */
     /* ── Prev / Next navigation ─────────────────────────── */
     .post-nav {
       display: grid;
@@ -387,9 +386,9 @@
           try { sections = JSON.parse(post.sections); } catch(e) { sections = []; }
         }
 
-        const bodyHTML   = sections.map(sec => renderSection(sec, isPoem)).join('');
-        const bodyHeight = calcBodyHeight(sections);
+        const bodyHTML = sections.map(sec => renderSection(sec, isPoem)).join('');
 
+        // Sections render as normal document flow — no absolute positioning or height guessing.
         container.innerHTML = `
           <a href="${backPage}" class="back-link">Back to ${backLabel}s</a>
           ${post.imageURL ? `<img class="post-hero" src="${post.imageURL}" alt="${post.title}">` : ''}
@@ -399,12 +398,12 @@
           </div>
           <h1 class="post-title">${post.title}</h1>
           <hr class="post-divider">
-        <div class="post-body ${isPoem ? 'poem-style' : ''}" style="position:relative;min-height:${bodyHeight}px;">
+          <div class="post-body ${isPoem ? 'poem-style' : ''}">
             ${bodyHTML || '<p>No content yet.</p>'}
           </div>
         `;
 
-        // Load prev/next after rendering
+        // Nav appended after content in normal flow — no overlap possible
         loadAdjacentPosts(post);
 
       } catch (e) {
@@ -447,41 +446,34 @@
           nav.innerHTML += '<div class="post-nav-empty"></div>';
         }
 
-        document.querySelector('.post-wrapper').appendChild(nav);
+        // ── FIX: append to post-container (inside the wrapper), not post-wrapper directly.
+        // This keeps the nav inside the content flow, after the post body.
+        document.getElementById('post-container').appendChild(nav);
       } catch(e) { /* silent */ }
     }
 
-
+    // Renders each section as normal document flow — no absolute positioning.
+    // builder.js sorts sections by Y before saving, so order is always correct here.
     function renderSection(sec, isPoem) {
-      const x   = sec.x != null ? parseInt(sec.x) : 0;
-      const y   = sec.y != null ? parseInt(sec.y) : 0;
-      const w   = sec.w != null ? parseInt(sec.w) : null;
-      const h   = sec.h != null ? parseInt(sec.h) : null;
-      const pos = `position:absolute;left:${x}px;top:${y}px;${w ? 'width:'+w+'px;' : ''}${h ? 'min-height:'+h+'px;' : ''}box-sizing:border-box;`;
       switch (sec.type) {
         case 'title':
-          return `<h2 class="section-title-block" style="${pos}">${sec.content || ''}</h2>`;
+          return `<h2 class="section-title-block">${sec.content || ''}</h2>`;
         case 'text':
-          return `<div class="section-text" style="${pos}">${sec.content || ''}</div>`;
+          return `<div class="section-text">${sec.content || ''}</div>`;
         case 'paragraph':
-          if (isPoem) return `<div class="poem-stanza" style="${pos}">${sec.content || ''}</div>`;
-          return `<div class="section-paragraph" style="${pos}">${sec.content || ''}</div>`;
+          if (isPoem) return `<div class="poem-stanza">${sec.content || ''}</div>`;
+          return `<div class="section-paragraph">${sec.content || ''}</div>`;
         case 'quote':
-          return `<blockquote class="section-quote" style="${pos}">${sec.content || ''}</blockquote>`;
+          return `<blockquote class="section-quote">${sec.content || ''}</blockquote>`;
         case 'image':
           return sec.content
-            ? `<div style="${pos}"><img src="${sec.content}" alt="" style="width:100%;border-radius:var(--radius-md);"></div>`
+            ? `<div class="section-image-wrap"><img src="${sec.content}" alt="${sec.alt || ''}" style="width:100%;border-radius:var(--radius-md);"></div>`
             : '';
         case 'divider':
-          return `<hr class="section-divider-line" style="${pos}width:${w||'100%'}px;">`;
+          return `<hr class="section-divider-line">`;
         default:
-          return `<div style="${pos}">${sec.content || ''}</div>`;
+          return `<div class="section-text">${sec.content || ''}</div>`;
       }
-    }
-
-    function calcBodyHeight(sections) {
-      if (!sections.length) return 200;
-      return Math.max(...sections.map(s => (parseInt(s.y)||0) + (parseInt(s.h)||48))) + 40;
     }
 
     document.addEventListener('DOMContentLoaded', loadPost);

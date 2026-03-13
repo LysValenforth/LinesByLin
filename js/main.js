@@ -18,9 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPageContent(pageCategory);
   }
 
-  // Media pages (movies, tvshows) are now handled by mediahub.js
-  // Beats page uses its own inline React component
-
   if (document.getElementById('featured-grid')) {
     loadFeaturedPosts();
   }
@@ -346,7 +343,6 @@ function stripHTML(html) {
 }
 
 // ─── Editor Access ─────────────────────────────────────────────────────────────
-// Editor is at editor.html — protected by Firebase Authentication.
 
 (function() {
   let aimBuffer = '';

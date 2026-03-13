@@ -94,15 +94,14 @@
       </div>
 
       <div style="display:flex; align-items:center; gap:var(--space-xs);">
-        <button id="btn-save-post" class="btn btn-primary btn-small">
-          <img src="assets/icons/save.svg" class="icon-btn" alt=""> Save
+        <button id="btn-preview-post" class="btn btn-secondary btn-small" style="display:none;" title="Preview post (Ctrl+P)">
+          Preview
         </button>
-        <button id="btn-delete-post" class="btn btn-danger btn-small">
-          <img src="assets/icons/delete.svg" class="icon-btn-dark" style="filter:none;opacity:.8;" alt=""> Delete
+        <button id="btn-save-post" class="btn btn-primary btn-small" title="Save (Ctrl+S)">
+          <img src="assets/icons/save.svg" class="icon-btn" alt=""> Save
         </button>
         <a href="index.html" class="btn btn-secondary btn-small">Site</a>
         <button id="btn-sign-out" class="btn btn-secondary btn-small" title="Sign out">Sign Out</button>
-        <!-- Mobile panel toggles (hidden on desktop) -->
         <button class="mobile-toolbar-btn" id="btn-toggle-sidebar" style="display:none;"><img src="assets/icons/menu.svg" style="width:18px;height:18px;" alt="menu"></button>
       </div>
     </div>
@@ -130,12 +129,24 @@
         <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search...">
       </div>
 
+      <!-- Category filter pills — shown contextually per tab -->
+      <div class="sidebar-cat-filter" id="sidebar-cat-filter-posts" style="display:none">
+        <button class="sidebar-cat-pill active" data-cat="all">All</button>
+        <button class="sidebar-cat-pill" data-cat="blog">Blog</button>
+        <button class="sidebar-cat-pill" data-cat="poem">Poem</button>
+        <button class="sidebar-cat-pill" data-cat="story">Story</button>
+      </div>
+
+      <div class="sidebar-cat-filter" id="sidebar-cat-filter-mediahub" style="display:none">
+        <button class="sidebar-cat-pill active" data-cat="all">All</button>
+        <button class="sidebar-cat-pill" data-cat="beats">Beats</button>
+        <button class="sidebar-cat-pill" data-cat="movies">Movies</button>
+        <button class="sidebar-cat-pill" data-cat="tvshows">Shows</button>
+      </div>
+
       <div class="sidebar-actions">
-        <button id="btn-new-post" class="btn btn-primary btn-small" style="flex:1;">
+        <button id="btn-new-post" class="btn btn-primary btn-small" style="flex:1;" title="New (Ctrl+N)">
           <img src="assets/icons/add.svg" class="icon-btn" alt=""> New
-        </button>
-        <button id="btn-delete-post-side" class="btn btn-danger btn-small">
-          <img src="assets/icons/delete.svg" class="icon-btn-dark" style="filter:none;opacity:.8;" alt="">
         </button>
       </div>
 
@@ -300,6 +311,9 @@
 
           <label class="field-label">Cover Image URL</label>
           <input type="text" id="post-cover-input" class="field-input" placeholder="https://... or assets/image.jpg">
+          <div id="post-cover-preview-wrap" style="display:none; margin-top:6px; margin-bottom:4px;">
+            <img id="post-cover-preview-img" src="" alt="Cover preview" style="width:100%;border-radius:var(--radius-md);border:var(--border-width) solid var(--warm-beige);object-fit:cover;max-height:120px;">
+          </div>
 
           <!-- Published toggle -->
           <div class="field-published-row">
@@ -312,6 +326,25 @@
             </label>
           </div>
           <p class="field-hint">Unpublished posts won't appear on the public site.</p>
+
+          <!-- Featured pin -->
+          <div class="field-published-row" style="margin-top:6px;">
+            <label class="field-label" style="margin:0;">Featured</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="post-featured-toggle">
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </label>
+          </div>
+          <p class="field-hint">Featured posts are pinned to the top of their category page.</p>
+
+          <!-- Delete (safe location, in settings) -->
+          <div style="margin-top:var(--space-sm); padding-top:var(--space-sm); border-top:1px solid var(--warm-beige);">
+            <button id="btn-delete-post" class="btn btn-danger btn-small" style="width:100%;">
+              <img src="assets/icons/delete.svg" class="icon-btn-dark" style="filter:none;opacity:.8;" alt=""> Delete this post
+            </button>
+          </div>
         </div>
 
         <!-- MediaHub: My Beats fields -->
@@ -513,19 +546,28 @@
         <!-- Tips (collapsible) -->
         <div class="control-section" id="tips-control-section">
           <div class="control-section-title" style="display:flex;align-items:center;justify-content:space-between;">
-            Tips
+            Keyboard Shortcuts
             <button id="tips-toggle-btn" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--forest-green);padding:0;line-height:1;">−</button>
           </div>
           <div id="tips-body">
-            <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.8; margin:0;">
-              Click any section to edit inline.<br>
-              Hover a section to reveal drag handle.<br>
-              Drag ⠿ to reorder · ⊕ to duplicate.<br>
-              Ctrl+Z undoes section-level actions.<br>
-              Tab / Shift+Tab moves between sections.<br>
-              Ctrl+S saves. Autosave every 5 seconds.
-            </p>
+            <div class="shortcut-grid">
+              <span class="shortcut-key">Ctrl+S</span><span class="shortcut-desc">Save</span>
+              <span class="shortcut-key">Ctrl+N</span><span class="shortcut-desc">New post</span>
+              <span class="shortcut-key">Ctrl+P</span><span class="shortcut-desc">Preview</span>
+              <span class="shortcut-key">Ctrl+D</span><span class="shortcut-desc">Duplicate section</span>
+              <span class="shortcut-key">Ctrl+↑↓</span><span class="shortcut-desc">Move section</span>
+              <span class="shortcut-key">Ctrl+Z</span><span class="shortcut-desc">Undo</span>
+              <span class="shortcut-key">Tab</span><span class="shortcut-desc">Next section</span>
+              <span class="shortcut-key">Shift+Tab</span><span class="shortcut-desc">Prev section</span>
+            </div>
           </div>
+        </div>
+
+        <!-- Section Reorder -->
+        <div class="control-section" id="section-reorder-panel" style="display:none;">
+          <div class="control-section-title">Section Order</div>
+          <p style="font-size:var(--text-xs);color:var(--text-secondary);margin:0 0 8px;">Drag rows to reorder, or use arrows.</p>
+          <div id="section-order-list" class="section-order-list"></div>
         </div>
 
         <!-- Navigate -->
@@ -564,6 +606,36 @@
     </button>
   </div>
 
+  <!-- Template picker modal -->
+  <div id="template-picker-modal" style="display:none; position:fixed; inset:0; z-index:2000; background:rgba(30,61,54,0.55); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div style="background:var(--bg-surface); border:2px solid var(--warm-beige); border-radius:var(--radius-xl); padding:28px 28px 20px; width:min(480px,92vw); box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+      <h3 style="font-family:var(--font-heading); color:var(--text-primary); margin:0 0 6px; font-size:1.2rem;">Start from a template</h3>
+      <p style="font-size:var(--text-sm); color:var(--text-secondary); margin:0 0 20px;">Or press Escape to start blank.</p>
+      <div class="template-grid" id="template-grid">
+        <button class="template-card" data-template="blank">
+          <span class="template-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+          <span class="template-name">Blank</span>
+          <span class="template-hint">Empty canvas</span>
+        </button>
+        <button class="template-card" data-template="poem">
+          <span class="template-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a9 9 0 0 1 9 9c0 4-2.5 7-6 8.5"/><path d="M3 11c0-4.97 4.03-9 9-9"/><path d="M7 20.5C4 18.5 3 15.5 3 13"/><line x1="12" y1="22" x2="12" y2="13"/><line x1="8" y1="17" x2="12" y2="13"/><line x1="16" y1="17" x2="12" y2="13"/></svg></span>
+          <span class="template-name">Poem</span>
+          <span class="template-hint">Title + verse blocks</span>
+        </button>
+        <button class="template-card" data-template="blog">
+          <span class="template-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+          <span class="template-name">Blog Post</span>
+          <span class="template-hint">Heading + paragraphs</span>
+        </button>
+        <button class="template-card" data-template="story">
+          <span class="template-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+          <span class="template-name">Story</span>
+          <span class="template-hint">Scene + prose blocks</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -580,9 +652,6 @@
       document.getElementById('btn-save-mobile')?.addEventListener('click', saveCurrentPost);
 
       // Block format dropdown
-      document.getElementById('toolbar-block-format')?.addEventListener('mousedown', (e) => {
-        // don't blur the editor
-      });
       document.getElementById('toolbar-block-format')?.addEventListener('change', (e) => {
         document.execCommand('formatBlock', false, e.target.value);
         e.target.blur();
@@ -597,11 +666,35 @@
         const sw = document.getElementById('hl-swatch');
         if (sw) sw.style.background = e.target.value;
       });
-      document.getElementById('btn-delete-post-side')?.addEventListener('click', deleteCurrentPost);
+
+      // Delete button (now only in settings panel)
+      document.getElementById('btn-delete-post')?.addEventListener('click', deleteCurrentPost);
+
+      // Link insert
       document.getElementById('btn-insert-link')?.addEventListener('mousedown', (e) => {
         e.preventDefault();
         const url = prompt('Enter URL:');
         if (url) document.execCommand('createLink', false, url);
+      });
+
+      // Cover image live preview
+      const coverInput = document.getElementById('post-cover-input');
+      const coverWrap  = document.getElementById('post-cover-preview-wrap');
+      const coverImg   = document.getElementById('post-cover-preview-img');
+      function updateCoverPreview(url) {
+        if (url && coverImg && coverWrap) {
+          coverImg.src = url;
+          coverWrap.style.display = 'block';
+        } else if (coverWrap) {
+          coverWrap.style.display = 'none';
+        }
+      }
+      coverInput?.addEventListener('input',  (e) => updateCoverPreview(e.target.value.trim()));
+      coverInput?.addEventListener('change', (e) => updateCoverPreview(e.target.value.trim()));
+
+      // Featured toggle marks dirty
+      document.getElementById('post-featured-toggle')?.addEventListener('change', () => {
+        if (typeof markDirty === 'function') markDirty();
       });
     });
   </script>

@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/beats.css">
+  <link rel="stylesheet" href="css/page-enhancements.css">
 </head>
 <body>
 
@@ -65,31 +66,77 @@
     </div>
   </nav>
 
-  <div class="page-header">
-    <div class="page-header-content">
-      <h1>MediaHub</h1>
-      <p>Music, films, and TV shows — all in one place.</p>
-    </div>
+<div class="page-header">
+      <svg class="ph-abstract-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 160" preserveAspectRatio="xMaxYMid slice">
+  <defs>
+    <clipPath id="ph-mountain-clip">
+      <rect x="0" y="0" width="960" height="160"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#ph-mountain-clip)">
+
+    <!-- Sun / circle — upper right -->
+    <circle cx="820" cy="30" r="32" fill="#A7C4BC" opacity="0.55"/>
+
+    <!-- Far background wave — lightest, highest -->
+    <path d="M300,80 C380,60 440,52 520,58 C600,64 660,72 740,65 C800,60 860,54 960,58 L960,160 L300,160 Z"
+          fill="#2F5D50" opacity="0.25"/>
+
+    <!-- Mid-far wave -->
+    <path d="M260,95 C340,75 420,65 520,72 C620,79 700,88 800,80 C860,75 910,70 960,73 L960,160 L260,160 Z"
+          fill="#2F5D50" opacity="0.35"/>
+
+    <!-- Mountain peak — center right, dark sharp triangle -->
+    <path d="M560,95 L600,42 L640,95 Z" fill="#1E3D36" opacity="0.8"/>
+    <!-- second smaller peak -->
+    <path d="M680,100 L708,62 L736,100 Z" fill="#1E3D36" opacity="0.5"/>
+
+    <!-- Mid wave — forest green -->
+    <path d="M220,108 C320,88 440,80 560,90 C660,98 760,105 880,98 C920,95 945,94 960,94 L960,160 L220,160 Z"
+          fill="#2F5D50" opacity="0.55"/>
+
+    <!-- Rolling hill — soft blue teal -->
+    <path d="M380,118 C460,105 550,100 650,108 C730,114 820,120 960,112 L960,160 L380,160 Z"
+          fill="#A7C4BC" opacity="0.22"/>
+
+    <!-- Foreground wave — darkest, bottom -->
+    <path d="M0,130 C120,118 240,112 380,120 C500,127 620,135 740,128 C840,122 900,118 960,120 L960,160 L0,160 Z"
+          fill="#1E3D36" opacity="0.7"/>
+
+    <!-- Foreground wave 2 — very bottom -->
+    <path d="M0,145 C160,136 320,130 480,138 C620,144 760,150 960,142 L960,160 L0,160 Z"
+          fill="#1E3D36" opacity="0.9"/>
+
+    <!-- Subtle warm beige valley strip -->
+    <path d="M440,125 C500,120 560,122 620,126 C660,129 700,132 740,128 L740,135 C700,139 660,136 620,133 C560,129 500,127 440,132 Z"
+          fill="#E8DCC8" opacity="0.1"/>
+
+  </g>
+</svg>
+  <div class="page-header-content">
+    <h1><span class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>MediaHub</h1>
+    <p>Music, films, and TV shows — all in one place.</p>
   </div>
+</div>
 
   <!-- Category previews -->
   <section class="section">
     <div class="container">
       <div class="grid grid-3" style="margin-bottom:var(--space-lg);">
-        <a href="beats.html" class="card" style="text-align:center; text-decoration:none;">
-          <img src="assets/icons/music.svg" style="width:48px;height:48px;margin:0 auto var(--space-sm);" alt="">
+        <a href="beats.html" class="card mediahub-cat-card" style="text-align:center; text-decoration:none;">
+          <div class="cat-icon-wrap"><img src="assets/icons/music.svg" alt=""></div>
           <h3>My Beats</h3>
           <p style="color:var(--text-secondary); font-size:var(--text-sm); margin:0 0 var(--space-sm);">Original music and tracks</p>
           <span class="card-link">View All</span>
         </a>
-        <a href="movies.html" class="card" style="text-align:center; text-decoration:none;">
-          <img src="assets/icons/movie.svg" style="width:48px;height:48px;margin:0 auto var(--space-sm);" alt="">
+        <a href="movies.html" class="card mediahub-cat-card" style="text-align:center; text-decoration:none;">
+          <div class="cat-icon-wrap"><img src="assets/icons/movie.svg" alt=""></div>
           <h3>Film Movies</h3>
           <p style="color:var(--text-secondary); font-size:var(--text-sm); margin:0 0 var(--space-sm);">Curated film collection</p>
           <span class="card-link">View All</span>
         </a>
-        <a href="tvshows.html" class="card" style="text-align:center; text-decoration:none;">
-          <img src="assets/icons/tv.svg" style="width:48px;height:48px;margin:0 auto var(--space-sm);" alt="">
+        <a href="tvshows.html" class="card mediahub-cat-card" style="text-align:center; text-decoration:none;">
+          <div class="cat-icon-wrap"><img src="assets/icons/tv.svg" alt=""></div>
           <h3>TV Shows</h3>
           <p style="color:var(--text-secondary); font-size:var(--text-sm); margin:0 0 var(--space-sm);">Series and shows</p>
           <span class="card-link">View All</span>

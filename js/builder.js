@@ -8,6 +8,12 @@ const CANVAS_W       = 760;
 const CANVAS_PADDING = 16;
 const MIN_SEC_W      = 160;
 const MIN_SEC_H      = 48;
+const GRID_SNAP      = 8;     // snap-to-grid pixel size
+
+// Track the last focused section for duplicate
+let lastFocusedSection = null;
+// Flow mode state
+let isFlowMode = false;
 
 function snapshotSections() {
   return [...document.querySelectorAll('#editor-sections .editor-section')].map(w => ({
@@ -93,6 +99,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ─── Bind Buttons ─────────────────────────────────────────────────────────────
 
+function snap(v) {
+  return Math.round(v / GRID_SNAP) * GRID_SNAP;
+}
+
 function bindSectionButtons() {
   const map = {
     'btn-add-title':     { type: 'title',    content: 'Section Title' },
@@ -108,6 +118,49 @@ function bindSectionButtons() {
       addSection({ ...sec });
     });
   });
+
+  // Duplicate last focused section
+  document.getElementById('btn-duplicate-section')?.addEventListener('click', () => {
+    if (!lastFocusedSection) { showToast('Click a section first to duplicate it.', 'warn'); return; }
+    pushHistory('duplicate');
+    const type = lastFocusedSection.dataset.type;
+    const block = lastFocusedSection.querySelector('[contenteditable], .section-image');
+    let content = '';
+    if (type === 'image') {
+      const b = lastFocusedSection.querySelector('.section-image');
+      content = b?.dataset.imageUrl || b?.querySelector('img')?.src || '';
+    } else if (block) {
+      content = block.innerHTML;
+    }
+    const origY = parseInt(lastFocusedSection.dataset.y) || 0;
+    const origH = parseInt(lastFocusedSection.dataset.h) || MIN_SEC_H;
+    addSection({
+      type, content,
+      w: parseInt(lastFocusedSection.dataset.w) || (CANVAS_W - CANVAS_PADDING * 2),
+      y: origY + origH + 12,
+    });
+    showToast('Section duplicated.', 'success');
+  });
+}
+
+// ── Flow Mode Toggle ──────────────────────────────────────────────────────────
+function toggleFlowMode() {
+  isFlowMode = !isFlowMode;
+  const container = document.getElementById('editor-sections');
+  const btn       = document.getElementById('btn-flow-mode');
+  const preview   = document.getElementById('editor-preview');
+
+  if (isFlowMode) {
+    container.classList.add('flow-mode');
+    preview.classList.add('snap-hint');
+    if (btn) { btn.textContent = 'Free'; btn.classList.add('flow-active'); }
+    showToast('Flow mode on — sections stack vertically.', 'info');
+  } else {
+    container.classList.remove('flow-mode');
+    preview.classList.remove('snap-hint');
+    if (btn) { btn.textContent = 'Flow'; btn.classList.remove('flow-active'); }
+    showToast('Free canvas mode on.', 'info');
+  }
 }
 
 // ─── Canvas helpers ───────────────────────────────────────────────────────────
@@ -213,6 +266,7 @@ function addSection(sec, record = true) {
   const sideCtrls = document.createElement('div');
   sideCtrls.className = 'section-controls-side';
   sideCtrls.innerHTML = `
+    <button class="section-btn-side section-btn-dupe" title="Duplicate section">⧉</button>
     <button class="section-btn-side section-btn-up" title="Bring forward">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
     </button>
@@ -230,6 +284,7 @@ function addSection(sec, record = true) {
     case 'title':
       block.className = 'section-title-block';
       block.setAttribute('contenteditable', 'true');
+      block.setAttribute('spellcheck', 'true');
       block.setAttribute('data-placeholder', 'Section title...');
       block.innerHTML = sec.content || 'Section Title';
       break;
@@ -237,20 +292,24 @@ function addSection(sec, record = true) {
     case 'paragraph':
       block.className = `section-${sec.type}`;
       block.setAttribute('contenteditable', 'true');
+      block.setAttribute('spellcheck', 'true');
       block.setAttribute('data-placeholder', 'Write something...');
       block.innerHTML = sec.content || '';
       break;
     case 'quote':
       block.className = 'section-quote';
       block.setAttribute('contenteditable', 'true');
+      block.setAttribute('spellcheck', 'true');
       block.setAttribute('data-placeholder', 'A quote...');
       block.innerHTML = sec.content || '';
       break;
     case 'image':
       block.className = 'section-image';
       if (sec.content) {
-        block.innerHTML = `<img src="${sec.content}" alt="Post image" style="width:100%;border-radius:var(--radius-md);border:var(--border-width) solid var(--warm-beige);">`;
+        const altAttr = sec.alt ? sec.alt.replace(/"/g, '&quot;') : 'Post image';
+        block.innerHTML = `<img src="${sec.content}" alt="${altAttr}" style="width:100%;border-radius:var(--radius-md);border:var(--border-width) solid var(--warm-beige);">`;
         block.dataset.imageUrl = sec.content;
+        if (sec.alt) block.dataset.imageAlt = sec.alt;
       } else {
         block.innerHTML = `<div class="section-image-placeholder">Click to upload an image</div>`;
         block.querySelector('.section-image-placeholder')?.addEventListener('click', () => {
@@ -267,6 +326,10 @@ function addSection(sec, record = true) {
       block.setAttribute('contenteditable', 'true');
       block.innerHTML = sec.content || '';
   }
+
+  // Track focus for duplicate
+  wrapper.addEventListener('focusin', () => { lastFocusedSection = wrapper; });
+  wrapper.addEventListener('mousedown', () => { lastFocusedSection = wrapper; });
 
   wrapper.appendChild(handle);
   wrapper.appendChild(block);
@@ -306,6 +369,27 @@ function addSection(sec, record = true) {
   sideCtrls.querySelector('.section-btn-down').addEventListener('click', () => {
     if (wrapper.previousElementSibling) { pushHistory('zorder'); container.insertBefore(wrapper, container.firstElementChild); if (typeof markDirty === 'function') markDirty(); }
   });
+  sideCtrls.querySelector('.section-btn-dupe').addEventListener('click', () => {
+    pushHistory('duplicate');
+    const type = wrapper.dataset.type;
+    let content = '';
+    if (type === 'image') {
+      const b = wrapper.querySelector('.section-image');
+      content = b?.dataset.imageUrl || b?.querySelector('img')?.src || '';
+    } else {
+      const b = wrapper.querySelector('[contenteditable]');
+      if (b) content = b.innerHTML;
+    }
+    const origY = parseInt(wrapper.dataset.y) || 0;
+    const origH = Math.max(wrapper.offsetHeight, parseInt(wrapper.dataset.h) || MIN_SEC_H);
+    addSection({
+      type, content,
+      w: parseInt(wrapper.dataset.w) || (CANVAS_W - CANVAS_PADDING * 2),
+      y: origY + origH + 12,
+    });
+    if (typeof markDirty === 'function') markDirty();
+    showToast('Section duplicated.', 'success');
+  });
 
   if (block.getAttribute('contenteditable') === 'true') {
     setTimeout(() => block.focus(), 50);
@@ -333,10 +417,12 @@ function setupDragMove(wrapper, handle, container) {
 
     function onMove(ev) {
       const contW = container.getBoundingClientRect().width;
-      const newX = Math.max(0, Math.min(contW - w - CANVAS_PADDING, startX + ev.clientX - startMX));
-      const newY = Math.max(0, startY + ev.clientY - startMY);
-      wrapper.dataset.x  = Math.round(newX);
-      wrapper.dataset.y  = Math.round(newY);
+      const rawX = startX + ev.clientX - startMX;
+      const rawY = startY + ev.clientY - startMY;
+      const newX = snap(Math.max(0, Math.min(contW - w - CANVAS_PADDING, rawX)));
+      const newY = snap(Math.max(0, rawY));
+      wrapper.dataset.x  = newX;
+      wrapper.dataset.y  = newY;
       wrapper.style.left = newX + 'px';
       wrapper.style.top  = newY + 'px';
     }
@@ -399,24 +485,37 @@ function setupResize(wrapper, handle, container, dir) {
 // ─── Gather Sections ──────────────────────────────────────────────────────────
 
 function gatherSections() {
-  const sections = [];
+  const raw = [];
   document.querySelectorAll('#editor-sections .editor-section').forEach(wrapper => {
     const type  = wrapper.dataset.type;
     const block = wrapper.querySelector('[contenteditable], .section-image, .section-divider-line');
     let   content = '';
+    let alt = '';
     if (type === 'image') {
       const b = wrapper.querySelector('.section-image');
       content = b?.dataset.imageUrl || b?.querySelector('img')?.src || '';
+      alt     = b?.dataset.imageAlt || b?.querySelector('img')?.alt || '';
     } else if (type !== 'divider' && block) {
       content = block.innerHTML;
     }
-    sections.push({
-      type, content,
+    raw.push({
+      type, content, alt,
       x: parseInt(wrapper.dataset.x)||0,
       y: parseInt(wrapper.dataset.y)||0,
       w: parseInt(wrapper.dataset.w)||(CANVAS_W - CANVAS_PADDING * 2),
       h: Math.max(wrapper.offsetHeight, parseInt(wrapper.dataset.h)||MIN_SEC_H),
     });
   });
-  return sections;
+
+  // ── Normalize for post.html rendering ────────────────────────────────────
+  // Sort by vertical position so post.html renders them top-to-bottom in order.
+  // Reset x to 0 and w to full canvas width so nothing is clipped on the page.
+  // post.html renders sections as normal flow (not absolute), so x/w are hints only.
+  raw.sort((a, b) => a.y - b.y);
+  return raw.map((sec, i) => ({
+    ...sec,
+    x: 0,
+    y: i * 8,           // lightweight sequential marker — post.html uses flow, not these coords
+    w: CANVAS_W - CANVAS_PADDING * 2,
+  }));
 }
