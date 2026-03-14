@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/page-enhancements.css">
   <link rel="stylesheet" href="css/mobile.css">
+  <link rel="stylesheet" href="css/scroll-animations.css">
 </head>
 <body>
 
@@ -881,9 +882,16 @@
     </div>
   </footer>
 
+  <script src="js/scroll-animations.js"></script>
+
   <div class="progress-wrap" id="progressWrap">
     <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
       <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"/>
     </svg>
     <span class="progress-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-li
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+      </svg>
+    </span>
+  </div>

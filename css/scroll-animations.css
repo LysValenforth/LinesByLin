@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════
+   LINESBYLIN — scroll-animations.css
+   Bidirectional scroll entrance/exit animations.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Respect prefers-reduced-motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-sa] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BASE — JS sets data-sa="fade-up|from-left|from-right|reveal"
+   and toggles data-sa-visible="true" / "false"
+   ══════════════════════════════════════════════════════════════ */
+
+[data-sa] {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: opacity, transform;
+  transition-duration: 0.6s;
+  will-change: opacity, transform;
+}
+
+/* ── FADE UP ─────────────────────────────────────────────────── */
+[data-sa="fade-up"] {
+  opacity: 0;
+  transform: translateY(26px);
+}
+[data-sa="fade-up"][data-sa-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── FROM LEFT ───────────────────────────────────────────────── */
+[data-sa="from-left"] {
+  opacity: 0;
+  transform: translateX(-32px);
+}
+[data-sa="from-left"][data-sa-visible="true"] {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── FROM RIGHT ──────────────────────────────────────────────── */
+[data-sa="from-right"] {
+  opacity: 0;
+  transform: translateX(32px);
+}
+[data-sa="from-right"][data-sa-visible="true"] {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── TEXT REVEAL (clip-path) ─────────────────────────────────── */
+[data-sa="reveal"] {
+  clip-path: inset(0 100% 0 0);
+  transition-property: clip-path;
+  transition-duration: 0.75s;
+  transition-timing-function: cubic-bezier(0.77, 0, 0.18, 1);
+}
+[data-sa="reveal"][data-sa-visible="true"] {
+  clip-path: inset(0 0% 0 0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STAGGER DELAYS — set via data-sa-delay="1..6"
+   ══════════════════════════════════════════════════════════════ */
+[data-sa-delay="1"] { transition-delay: 0.08s; }
+[data-sa-delay="2"] { transition-delay: 0.16s; }
+[data-sa-delay="3"] { transition-delay: 0.24s; }
+[data-sa-delay="4"] { transition-delay: 0.32s; }
+[data-sa-delay="5"] { transition-delay: 0.40s; }
+[data-sa-delay="6"] { transition-delay: 0.48s; }
+
+/* Exit: always instant — no delay going out */
+[data-sa][data-sa-visible="false"] {
+  transition-delay: 0s !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [data-sa] { transition-duration: 0.42s; }
+
+  /* Flatten horizontal slides to vertical on stacked layout */
+  [data-sa="from-left"],
+  [data-sa="from-right"] {
+    transform: translateY(16px);
+  }
+  [data-sa="from-left"][data-sa-visible="true"],
+  [data-sa="from-right"][data-sa-visible="true"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-sa="fade-up"] { transform: translateY(16px); }
+  [data-sa="fade-up"][data-sa-visible="true"] { transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  [data-sa] { transition-duration: 0.32s; }
+  [data-sa="fade-up"]    { transform: translateY(10px); }
+  [data-sa="from-left"]  { transform: translateY(10px); }
+  [data-sa="from-right"] { transform: translateY(10px); }
+}
