@@ -507,10 +507,6 @@ function gatherSections() {
     });
   });
 
-  // ── Normalize for post.html rendering ────────────────────────────────────
-  // Sort by vertical position so post.html renders them top-to-bottom in order.
-  // Reset x to 0 and w to full canvas width so nothing is clipped on the page.
-  // post.html renders sections as normal flow (not absolute), so x/w are hints only.
   raw.sort((a, b) => a.y - b.y);
   return raw.map((sec, i) => ({
     ...sec,

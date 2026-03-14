@@ -103,11 +103,14 @@ function initNav() {
   });
 
   // ── Fix anchor links (#about, #contact) from other pages ────────────────
-  document.querySelectorAll('a[href^="#"]').forEach(link => {
+  // Exclude dropdown toggles — they use href="#" and must NOT trigger a redirect
+  document.querySelectorAll('a[href^="#"]:not(.dropdown-toggle)').forEach(link => {
     link.addEventListener('click', function(e) {
       const hash = this.getAttribute('href');
+      // Ignore bare "#" with no real target
+      if (!hash || hash === '#') return;
       const isHome = currentPath === 'index.html' || currentPath === '';
-      if (!isHome && hash) {
+      if (!isHome) {
         e.preventDefault();
         window.location.href = 'index.html' + hash;
       }

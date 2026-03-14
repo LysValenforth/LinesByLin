@@ -54,7 +54,11 @@ body { overflow-x: hidden; }
   .nav-backdrop {
     display: none;
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    /* Stop before the sidebar — sidebar is min(290px, 80vw) wide from the right */
+    right: min(290px, 80vw);
     background: rgba(20, 40, 35, 0.5);
     z-index: 1050;
     backdrop-filter: blur(2px);
@@ -323,8 +327,17 @@ body { overflow-x: hidden; }
   .about-body { text-align: left; }
 }
 @media (max-width: 480px) {
-  .about-stats { flex-direction: column; gap: var(--space-sm); }
-  .about-stat-divider { width: 48px; height: 1px; }
+  /* Keep stats as a horizontal row on mobile — 3 items side by side */
+  .about-stats {
+    flex-direction: row;
+    width: 100%;
+    padding: 14px 12px;
+    gap: 0;
+  }
+  .about-stat { flex: 1; min-width: 0; }
+  .about-stat-divider { width: 1px; height: 32px; flex-shrink: 0; }
+  .stat-num   { font-size: 0.82rem; }
+  .stat-label { font-size: 0.6rem; }
   .about-heading { font-size: clamp(1.6rem, 6vw, 2.2rem); }
 }
 
